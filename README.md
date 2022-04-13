@@ -1,1 +1,2 @@
-# SyMAX_Meerkat_fault_injection
+# symax_sri_drive
+SyMAX-SRi Drive Board Firmware integrated with Meerkat

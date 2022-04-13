@@ -1,0 +1,952 @@
+;***************************************************************************
+;***** ECM Eon DSI Seamless Platform (ECM Eon DSI) *************************
+;
+;  File:    vEEdata_SL.s
+;
+;       !!!!!   REGAL BELOIT COMPANY PROPRIETARY !!!!!
+;
+;  Author:  B.Beifus, M. Koller
+;  Toolchain: V5.20.2.31007
+;  Target:  STMicro STM32F103/101
+****************************************************************************
+;****** REVLOG *************************************************************
+;*  Created 11-26-2019
+;*
+;***************************************************************************
+;***************************************************************************
+;
+
+#ifndef vEEdata_SL_H
+#define vEEdata_SL_H
+
+#include "Const_SL.h"
+
+; Initialization for ON_115V_HfHP ECM Ensite
+
+    SECTION    vEE:CONST(1)
+// !!! Important !!! Blocks of bytes must be even lengths!!!
+
+;// 8 bit settings block loaded to noncritical RAM variables.					
+     PUBLIC  nvIzero
+nvIzero:		DC8		0x008		; 0h		// Signed IOUT offset term.
+     PUBLIC  nvIscale
+nvIscale:		DC8		0x047		; 1h		// IOUT overall scale factor.
+     PUBLIC  nvDnscl
+nvDnscl:		DC8		0x040		; 2h		// Master scale factor.
+     PUBLIC  nvMaxRise
+nvMaxRise:		DC8		0x020		; 3h		// Temp rise to derate to zero
+     PUBLIC  nvMaxTemp
+nvMaxTemp:		DC8		0x075		; 4h		// Module temperature limit begins
+     PUBLIC  nvFcomp
+nvFcomp:		DC8		0x004		; 5h		// HSI calibration trim
+     PUBLIC  nvCutoff
+nvCutoff:		DC8		0x05A		; 6h		// Speed limit cutback threshold. Uses nvSpdExp
+     PUBLIC  nvCutNL
+nvCutNL:		DC8		0x068		; 7h		// No load speed
+     PUBLIC  nvFbkKp
+nvFbkKp:		DC8		0x020		; 8h		// Feedback proportional coeff
+     PUBLIC  nvFbkKi
+nvFbkKi:		DC8		0x020		; 9h		// Feedback integral coeff
+     PUBLIC  nvFbkKd
+nvFbkKd:		DC8		0x030		; Ah		// Feedback differential coeff
+     PUBLIC  Spare11
+Spare11:		DC8		0x00		; Bh		// spare01
+
+;// 16 bit settings block loaded to noncritical RAM variables.					
+     PUBLIC  nvA1
+nvA1:			DC16		0x0000	; Ch		// Constant cfm coeff
+     PUBLIC  nvA2
+nvA2:			DC16		0x0000	; Eh		// Constant cfm coeff
+     PUBLIC  nvA3
+nvA3:			DC16		0x0000	; 10h		// Constant cfm coeff
+     PUBLIC  nvA4
+nvA4:			DC16		0x0000	; 12h		// Constant cfm coeff
+     PUBLIC  nvMaxCFM
+nvMaxCFM:		DC16		0x0000	; 14h		// Max CFM for airflow command
+
+;// 8 bit settings block loaded to noncritical RAM variables.					
+     PUBLIC  nvRecipBias0
+nvRecipBias0:	DC8		0x00		; 16h		// u8 Non-emulate legacy tail bias
+     PUBLIC  nvLin0
+nvLin0:		DC8		0x00		; 17h		// u8 Non-emulate Linearity
+     PUBLIC  nvKinv
+nvKinv:		DC8		0x00		; 18h		// u8 Offset taper
+     PUBLIC  nvKofs
+nvKofs:		DC8		0x010		; 19h		// u8 Offset
+     PUBLIC  nvLin
+nvLin:		DC8		0x00		; 1Ah		// s8 Linearity
+     PUBLIC  nvScompL
+nvScompL:		DC8		0x013		; 1Bh		// s8 Speed comp L
+     PUBLIC  nvScompH
+nvScompH:		DC8		0x0D		; 1Ch		// s8 Speed comp H
+     PUBLIC  nvRecipBias
+nvRecipBias:	DC8		0x00		; 1Dh		// u8 Legacy tail bias
+
+;// 8 bit motor specific settings loaded to critical RAM variables.					
+     PUBLIC  nvPoles
+nvPoles:		DC8		0x005		; 1Eh		// Number of pole pairs, IQ0
+     PUBLIC  nvIrefMax
+nvIrefMax:		DC8		0x036		; 1Fh		// Highest current ref limit allowed, IQ4
+     PUBLIC  nvNumberh
+nvNumberh:		DC8		0x006		; 20h		// Harmonic number to inject
+     PUBLIC  nvLpass_spd
+nvLpass_spd:	DC8		0x008		; 21h		// filter coeff on gcW_k_filt
+     PUBLIC  nvSpdCal
+nvSpdCal:		DC8		0x00		; 22h		// Signed trim for speed calculation.
+     PUBLIC  nvDt_spd
+nvDt_spd:		DC8		0x01E		; 23h		// Speed to turn off Dtcomp
+
+;// 16 bit motor specific settings loaded to critical RAM variables.					
+     PUBLIC  nvRph
+nvRph:		DC16		0x1400	; 24h		// Phase resistance, IQ10
+     PUBLIC  nvSampTm
+nvSampTm:		DC16		0x3CF3	; 26h		// Sampling time for current, IQ28
+     PUBLIC  nvPLq
+nvPLq:		DC16		0x0FA0	; 28h		// Poles*inductance, IQ14
+     PUBLIC  nvPLd
+nvPLd:		DC16		0x09C4	; 2Ah		// Poles*inductance, IQ14
+     PUBLIC  nvSpare44
+nvSpare44:		DC16		0x0000	; 2Ch		// spare44
+     PUBLIC  nvSpare46
+nvSpare46:		DC16		0x0000	; 2Eh		// spare46
+     PUBLIC  nvSpare48
+nvSpare48:		DC16		0x0000	; 30h		// spare48
+     PUBLIC  nvKcurrIa
+nvKcurrIa:		DC16		0x2E00	; 32h		// Current shunt sense Ia gain, IQ4
+     PUBLIC  nvKcurrIb
+nvKcurrIb:		DC16		0x2E00	; 34h		// Current shunt sense Ib gain, IQ4
+     PUBLIC  nvKcurrIc
+nvKcurrIc:		DC16		0x2E00	; 36h		// Current shunt sense Ic gain, IQ4
+     PUBLIC  nvKvoltage
+nvKvoltage:		DC16		0x7C9A	; 38h		// Voltage sense gain, IQ4
+     PUBLIC  nvHIcoast
+nvHIcoast:		DC16		0x1000	; 3Ah		// Harmonic amplitude coasting, IQ16
+     PUBLIC  nvSpare60
+nvSpare60:		DC16		0x0000	; 3Ch		// spare 60
+     PUBLIC  nvSR_run
+nvSR_run:		DC16		0x02CC	; 3Eh		// Slew rate limit running, IQ20
+     PUBLIC  nvPreStrt
+nvPreStrt:		DC16		0x0028	; 40h		// First param change rad/s threshold, IQ2 
+     PUBLIC  nvStrtOK
+nvStrtOK:		DC16		0x0050	; 42h		// Good-start rad/s threshold 50h = 191 rpm, IQ2
+     PUBLIC  nvStall
+nvStall:		DC16		0x0026	; 44h		// Stall speed rad/s. 26h is 90 rpm, IQ2
+     PUBLIC  nvOLStrt
+nvOLStrt:		DC16		0x001A	; 46h		// Speed to exit VperHz rad/s, IQ2
+     PUBLIC  nvVmode_th
+nvVmode_th:		DC16		0x370A	; 48h		// Threshold for reducing gains, IQ16
+     PUBLIC  nvImode_th
+nvImode_th:		DC16		0x347A	; 4Ah		// Threshold for restoring gains, IQ16
+;// End of block load
+     PUBLIC  nvHIcoastSpd
+nvHIcoastSpd:	DC16		0x0078	; 4Ch		// rad/s * 4,  0x75 = 29 rad/s = 280 Rpm
+
+;// 32 bit motor specific settings loaded to critical RAM variables.					
+     PUBLIC  nvK_angle
+nvK_angle:		DC16		0x9830	; 4Eh		// Angle coefficient to read the sine table
+			DC16		0x0A2F			// High word
+
+;// Miscellaneous					
+     PUBLIC  nvScompL0
+nvScompL0:		DC8		0x00		; 52h		// s8 Non-emulate speed comp L
+     PUBLIC  nvScompH0
+nvScompH0:		DC8		0x00		; 53h		// s8 Non-emulate speed comp H
+     PUBLIC  nvStndStill_cnt
+nvStndStill_cnt:	DC8		0x01		; 54h		// Delay count for standstill
+     PUBLIC  nvCthWheel_cnt
+nvCthWheel_cnt:	DC8		0x014		; 55h		// Delay count for catching wheel
+
+;// Start param groups block loaded, s16.					
+
+;//  start_state = INITIALIZE					
+     PUBLIC  nvKidq_init
+nvKidq_init:	DC16		0x0800	; 56h		// D/Q axis proportional gain, IQ8
+     PUBLIC  nvTidqTest_init
+nvTidqTest_init:	DC16		0x4C49	; 58h		// D/Q axis integral gain, IQ12
+     PUBLIC  nvK1_init
+nvK1_init:		DC16		0x0299	; 5Ah		// Spd/Pos estimation prop gain, IQ12
+     PUBLIC  nvK2_Test_init
+nvK2_Test_init:	DC16		0x028F	; 5Ch		// Spd/Pos estimation integ gain, IQ20
+
+;//  start_state = RELEASE					
+     PUBLIC  nvKidq_rel
+nvKidq_rel:		DC16		0x01E8	; 5Eh		// D/Q axis proportional gain, IQ8
+     PUBLIC  nvTidqTest_rel
+nvTidqTest_rel:	DC16		0x0249	; 60h		// D/Q axis integral gain, IQ12
+     PUBLIC  nvK1_rel
+nvK1_rel:		DC16		0x00AA	; 62h		// Spd/Pos estimation prop gain, IQ12
+     PUBLIC  nvK2_Test_rel
+nvK2_Test_rel:	DC16		0x007C	; 64h		// Spd/Pos estimation integ gain, IQ20
+
+;//  start_state = RUN					
+     PUBLIC  nvKidq_run
+nvKidq_run:		DC16		0x3800	; 66h		// D/Q axis proportional gain, IQ8
+     PUBLIC  nvTidqTest_run
+nvTidqTest_run:	DC16		0x2600	; 68h		// D/Q axis integral gain, IQ12
+     PUBLIC  nvK1_run
+nvK1_run:		DC16		0x0989	; 6Ah		// Spd/Pos estimation prop gain, IQ12
+     PUBLIC  nvK2_Test_run
+nvK2_Test_run:	DC16		0x105E	; 6Ch		// Spd/Pos estimation integ gain, IQ20
+
+;//  start_state = CHKDIR (reverse)					
+     PUBLIC  nvKidq_rev
+nvKidq_rev:		DC16		0x0240	; 6Eh		// D/Q axis proportional gain, IQ8
+     PUBLIC  nvTidqTest_rev
+nvTidqTest_rev:	DC16		0x0140	; 70h		// D/Q axis integral gain, IQ12
+     PUBLIC  nvK1_rev
+nvK1_rev:		DC16		0x0000	; 72h		// Spd/Pos estimation prop gain, IQ12
+     PUBLIC  nvK2_Test_rev
+nvK2_Test_rev:	DC16		0x0000	; 74h		// Spd/Pos estimation integ gain, IQ20
+
+;//  start_state = CHKDIR (forward)					
+     PUBLIC  nvKidq_fwd
+nvKidq_fwd:		DC16		0x00B3	; 76h		// D/Q axis proportional gain, IQ8
+     PUBLIC  nvTidqTest_fwd
+nvTidqTest_fwd:	DC16		0x00CC	; 78h		// D/Q axis integral gain, IQ12
+     PUBLIC  nvK1_fwd
+nvK1_fwd:		DC16		0x00B3	; 7Ah		// Spd/Pos estimation prop gain, IQ12
+     PUBLIC  nvK2_Test_fwd
+nvK2_Test_fwd:	DC16		0x0083	; 7Ch		// Spd/Pos estimation integ gain, IQ20
+
+;// For voltage mode gain management					
+     PUBLIC  nvKidq_min
+nvKidq_min:		DC16		0x0800	; 7Eh		// D/Q axis Minimum proportional gain, IQ8
+     PUBLIC  nvTidqTest_min
+nvTidqTest_min:	DC16		0x0A00	; 80h		// D/Q axis Minimum integral gain, IQ12
+     PUBLIC  nvRate_dn
+nvRate_dn:		DC8		0x030		; 82h		// Gain slider rate down, IQ0
+     PUBLIC  nvRate_up
+nvRate_up:		DC8		0x002		; 83h		// Gain slider rate up, IQ0
+     PUBLIC  nvVec_limit
+nvVec_limit:	DC16		0x4FA0	; 84h		// Vector length for voltage mode threshold
+
+;//  start_state = VPERHZ					
+     PUBLIC  nvKidq_vh
+nvKidq_vh:		DC16		0x1312	; 86h		// D/Q axis proportional gain, IQ8
+     PUBLIC  nvTidqTest_vh
+nvTidqTest_vh:	DC16		0x0F42	; 88h		// D/Q axis integral gain, IQ12
+     PUBLIC  nvK1_vh
+nvK1_vh:		DC16		0x00AA	; 8Ah		// Spd/Pos estimation prop gain, IQ12
+     PUBLIC  nvK2_Test_vh
+nvK2_Test_vh:	DC16		0x007C	; 8Ch		// Spd/Pos estimation integ gain, IQ20
+
+;// Settings not loaded to RAM					
+     PUBLIC  nvAvgSlope
+nvAvgSlope:		DC16		0x0050	; 8Eh		// Micro temp sensor slope  IQ24
+     PUBLIC  nvV25_Temp
+nvV25_Temp:		DC16		0x6E20	; 90h		// Micro temp sensor 25 deg offset  IQ24
+     PUBLIC  nvSR_vlim_dn
+nvSR_vlim_dn:	DC16		0x0831	; 92h		// V limit down SR  IQ20
+     PUBLIC  nvSR_vlim_up
+nvSR_vlim_up:	DC16		0x00D1	; 94h		// V limit up SR  IQ20
+     PUBLIC  nvKemf
+nvKemf:		DC16		0x1000	; 96h		// Voltage constant, IQ16
+     PUBLIC  nvW_check
+nvW_check:		DC16		0x7C60	; 98h		// Maximum believable speed  IQ4
+     PUBLIC  nvDrRtry
+nvDrRtry:		DC8		0x003 	; 9Ah		// Dual Rotation Retry attempts
+     PUBLIC  nvDrRnTm
+nvDrRnTm:		DC8		0x014 	; 9Bh		// Dual Rotation Run Time
+     PUBLIC  nvSR_strt
+nvSR_strt:		DC16		0x0034	; 9Ch		// Slew rate limit starting. IQ20
+     PUBLIC  nvVsat_limit
+nvVsat_limit:	DC8		0x0FA		; 9Eh		// V limit for compensation  IQ8
+     PUBLIC  nvLP_run
+nvLP_run:		DC8		0x0F3		; 9Fh		// Low pass coeff on w_k1, running. IQ8
+     PUBLIC  nvLP_strt
+nvLP_strt:		DC8		0x0CC		; A0h		// Low pass coeff on w_k1, starting. IQ8
+     PUBLIC  nvStl_vlt
+nvStl_vlt:		DC8		0x028		; A1h		// Vemf for stall  IQ3
+     PUBLIC  nvMtrCalSpd
+nvMtrCalSpd:	DC8		0x05A		; A2h		// Motor Final Test Calibration Speed. Uses nvSpdExp
+     PUBLIC  nvVdq_filt
+nvVdq_filt:		DC8		0x080		; A3h		// Vd/Vq filter coeff for Check Dir state  IQ8
+     PUBLIC  nvBrk_db
+nvBrk_db:		DC8		0x070		; A4h		// debounce count for Lock1 state  IQ0
+     PUBLIC  nvBrk_didt
+nvBrk_didt:		DC8		0x033		; A5h		// di/dt threshold to ident direction  IQ8
+     PUBLIC  nvBrk_filt
+nvBrk_filt:		DC8		0x019		; A6h		// filter coeff for brake mode  IQ8
+     PUBLIC  nvBrk_samp
+nvBrk_samp:		DC8		0x0AA		; A7h		// sample rate divider for lock converge * 224uS, IQ14
+     PUBLIC  nvWc_gain
+nvWc_gain:		DC8		0x020		; A8h		// w_comp coeff  IQ8
+     PUBLIC  nvRampMaxWc
+nvRampMaxWc:	DC8		0x010		; A9h		// max w_k_comp during ramp  IQ4
+     PUBLIC  nvRampMinW
+nvRampMinW:		DC8		0x003		; AAh		// min w_k during ramp  IQ4
+     PUBLIC  nvRampMinWc
+nvRampMinWc:	DC8		0x070		; ABh		// min w_k_comp during ramp  IQ4
+     PUBLIC  nvRampRate
+nvRampRate:		DC8		0x019		; ACh		// w_k step for open loop accel  IQ18
+     PUBLIC  nvSpdLim1
+nvSpdLim1:		DC8		0x003		; ADh		// w_k limit during startup  IQ4
+     PUBLIC  nvSpdLim2
+nvSpdLim2:		DC8		0x008		; AEh		// w_k limit during accel  IQ4
+     PUBLIC  nvW_reset
+nvW_reset:		DC8		0x001		; AFh		// assign to w if coherence failure  IQ4
+     PUBLIC  nvDivergLim
+nvDivergLim:	DC8		0x04B		; B0h		// Sanity check for w estimate  IQ-1
+     PUBLIC  nvMotion_th
+nvMotion_th:	DC8		0x040		; B1h		// Vd/Vq band for ZC detection. IQ4
+     PUBLIC  nvDirCntTh
+nvDirCntTh:		DC8		0x008		; B2h		// Number of Vd ZC's to declare direction IQ0
+     PUBLIC  nvVdq_sampdiv
+nvVdq_sampdiv:	DC8		0x008		; B3h		// Divisor for clockD rate IQ0
+     PUBLIC  nvNoLoadCur
+nvNoLoadCur:	DC8		0x001		; B4h		// Min current for Noload  IQ8
+     PUBLIC  nvVdq_clip
+nvVdq_clip:		DC8		0x0AA		; B5h		// Clipping fraction of Us for Vd. IQ8
+     PUBLIC  nvK2_exp
+nvK2_exp:		DC8		0x000		; B6h		// Exponent for K2 left shift  IQ0
+     PUBLIC  nvDT_comp
+nvDT_comp:		DC8		0x000		; B7h		// Deadtime compensation for SVPWM, IQ12
+							
+
+;// Motor and Application specific settings					
+     PUBLIC  nvMflg0
+nvMflg0:		DC8		0x041		; B8h		// Motor option flags 0  40h
+     PUBLIC  nvMflg1
+nvMflg1:		DC8		0x0C4		; B9h		// Motor option flags 1
+     PUBLIC  nvMflg2
+nvMflg2:		DC8		0x064		; BAh		// Motor option flags 2
+     PUBLIC  nvN_Pulses
+nvN_Pulses:		DC8		0x024		; BBh		// Pulses per revolution
+     PUBLIC  nvStrMin
+nvStrMin:		DC8		0x030		; BCh		// Normal start current  IQ4
+     PUBLIC  nvBBevnt_dis0
+nvBBevnt_dis0:	DC8		0x000		; BDh		// Blakbox event disable flags 0
+     PUBLIC  nvBBevnt_dis1
+nvBBevnt_dis1:	DC8		0x008		; BEh		// Blakbox event disable flags 1
+     PUBLIC  nvStrCnt
+nvStrCnt:		DC8		0x072		; BFh		// Start ramp loop count, 50mS steps
+     PUBLIC  nvFwd_dly
+nvFwd_dly:		DC8		0x018		; C0h		// Delay increment for forward timeout
+     PUBLIC  nvBwStrCnt
+nvBwStrCnt:		DC8		0x080		; C1h		// Timeout for backward sequence * 200mS
+     PUBLIC  nvBwd_dly
+nvBwd_dly:		DC8		0x030		; C2h		// Delay increment for backward timeout
+     PUBLIC  nvDirTim
+nvDirTim:		DC8		0x00A		; C3h		// Timeout for CHECK_DIR state, * 50mS.
+     PUBLIC  nvNocompSpd
+nvNocompSpd:	DC8		0x05E		; C4h		// Upper speed limit for torque comp, uses nvSpdExp
+     PUBLIC  nvDT_comp1
+nvDT_comp1:		DC8		0x080		; C5h		// Deadtime compensation for starting
+     PUBLIC  nvResChk_th
+nvResChk_th:	DC8		0x000		; C6h		// Periodic instant off threshold for resonant check
+     PUBLIC  nvI_brkdone
+nvI_brkdone:	DC8		0x010		; C7h		// Current to exit braking, IQ8
+     PUBLIC  nvFwdTim
+nvFwdTim:		DC8		0x008		; C8h		// timeout, * 50mS
+     PUBLIC  nvDecelTim
+nvDecelTim:		DC8		0x0C0		; C9h		// Braking timeout, * 50mS
+     PUBLIC  nvLockTim
+nvLockTim:		DC8		0x0FF		; CAh		// Lock state timeout, * 50mS
+     PUBLIC  nvLock_Iq
+nvLock_Iq:		DC8		0x02A		; CBh		// Lock state Iq current, IQ4
+     PUBLIC  nvLock_Id
+nvLock_Id:		DC8		0x0F0		; CCh		// Lock state Id current, IQ4 signed
+     PUBLIC  nvOLTim
+nvOLTim:		DC8		0x060		; CDh		// Timeout for open loop ramp, * 50mS.
+     PUBLIC  nvMax_dTdt
+nvMax_dTdt:		DC8		0x01A		; CEh		// Thermal shock threshold
+     PUBLIC  nvOL_exit
+nvOL_exit:		DC8		0x030		; CFh		// Open Loop exit current, IQ4
+     PUBLIC  nvSCutoff
+nvSCutoff:		DC8		0x081		; D0h		// Safety cutback Knee speed.
+     PUBLIC  nvSCutNL
+nvSCutNL:		DC8		0x0A0		; D1h		// Safety cutback top speed.
+     PUBLIC  nvDrDmd
+nvDrDmd:		DC8		0x032		; D2h		// Dual Rotation initial demand value is byte*256
+     PUBLIC  nvSpare211
+nvSpare211: 	DC8		0x000		; D3h		// spare 211
+     PUBLIC  nvItrip
+nvItrip:		DC8		0x04A		; D4h		// Ultimate trip current 1HP-8.375A  IQ4
+     PUBLIC  nvIrefMin
+nvIrefMin:		DC8		0x040		; D5h		// Lowest current ref limit allowed
+     PUBLIC  nvMinBus
+nvMinBus:		DC16		0x0000	; D6h		// Min bus voltage for operation IQ4
+     PUBLIC  nvMaxBus
+nvMaxBus:		DC16		0x1900	; D8h		// Turnoff threshold, high line  IQ4
+     PUBLIC  nvBusFail
+nvBusFail:		DC16		0x0000	; DAh		// Bus voltage for BB save  IQ4  550
+     PUBLIC  nvNorm_SR
+nvNorm_SR:		DC8		0x070		; DCh		// Upward slew rate for startup
+     PUBLIC  nvDf_on
+nvDf_on:		DC8		0x008		; DDh		// Duty factor on threshold
+     PUBLIC  nvDf_off
+nvDf_off:		DC8		0x001		; DEh		// Duty factor off threshold
+     PUBLIC  nvHalfwave_th
+nvHalfwave_th:	DC8		0x08F		; DFh		// Tstat input half/fullwave threshold
+     PUBLIC  nvOn_th
+nvOn_th:		DC8		0x00F		; E0h		// Tstat input on threshold
+     PUBLIC  nvMax_df_err
+nvMax_df_err:	DC8		0x060		; E1h		// Max duty factor error from estimate
+     PUBLIC  nvBrkOnSpd
+nvBrkOnSpd:		DC8		0x067		; E2h		// Brake activation speed
+     PUBLIC  nvBrkTime
+nvBrkTime:		DC8		0x040		; E3h		// Brake sustain time, ticks. 0=infinite time
+     PUBLIC  nvDbCount
+nvDbCount:		DC8		0x003		; E4h		// Input debounce threshold
+     PUBLIC  nvIrefLimSlp
+nvIrefLimSlp:	DC8		0x030		; E5h		// IqMax limiting slope
+     PUBLIC  nvIrefLimOfs
+nvIrefLimOfs:	DC8		0x005		; E6h		// IqMax limiting rpm offset. Uses nvSpdExp
+     PUBLIC  nvSpdExp
+nvSpdExp:		DC8		0x008		; E7h		// Left shift for speed scaling (Rpm settings)
+     PUBLIC  nvBrkpos_gain
+nvBrkpos_gain:	DC8		0x0C3		; E8h		// Gain on delta Theta increment, IQ8
+     PUBLIC  nvCkDirVmax
+nvCkDirVmax:	DC8		0x03C		; E9h		// Vd,Vq deadband top for Check Dir, IQ2
+     PUBLIC  nvCkDirImax
+nvCkDirImax:	DC8		0x019		; EAh		// Id,Iq deadband top for Check Dir, IQ8
+     PUBLIC  nvSpd_Fac
+nvSpd_Fac:		DC8		0x80		; EBh		// Scaler for synthetic speed signal (SAMM)
+     PUBLIC  nvBurninShtdn
+nvBurninShtdn:	DC16		0x0FFFF	; ECh		// Reserved for Burn-in shutdown
+     PUBLIC  nvDQblnk_cnt
+nvDQblnk_cnt:	DC8		0x008		; EEh		// number of passes to blank Dqcalc at init.
+     PUBLIC  nvInjOfsMax
+nvInjOfsMax:	DC8		0x064		; EFh		// current sense offset limit, +/-  counts/16
+     PUBLIC  nvChecksum0
+nvChecksum0:	DC16		0x09F0B	; F0h		// Checksum for block 0
+							
+
+;// Application specific settings					
+     PUBLIC  nvSpd
+nvSpd:					                  // First element of speed tap struct
+     PUBLIC  nvSpd0
+nvSpd0:		DC8		0x030		; F2h		// Discrete Speed 0.  Uses nvSpdExp if Rpm
+     PUBLIC  nvSr0
+nvSr0:		DC8		0x00		; F3h		// Slew rates for speed 0
+     PUBLIC  nvDelFlg0
+nvDelFlg0:		DC8		0x00		; F4h		// Off Delay and Flags for speed 0
+     PUBLIC  nvSpd1
+nvSpd1:		DC8		0x00		; F5h		// Discrete Speed 1.  Uses nvSpdExp if Rpm
+     PUBLIC  nvSr1
+nvSr1:		DC8		0x00		; F6h		// Slew rates for speed 1
+     PUBLIC  nvDelFlg1
+nvDelFlg1:		DC8		0x00		; F7h		// Off Delay and Flags for speed 1
+     PUBLIC  nvSpd2
+nvSpd2:		DC8		0x00		; F8h		// Discrete Speed 2.  Uses nvSpdExp if Rpm
+     PUBLIC  nvSr2
+nvSr2:		DC8		0x00		; F9h		// Slew rates for speed 2
+     PUBLIC  nvDelFlg2
+nvDelFlg2:		DC8		0x00		; FAh		// Off Delay and Flags for speed 2
+     PUBLIC  nvSpd3
+nvSpd3:		DC8		0x00		; FBh		// Discrete Speed 3.  Uses nvSpdExp if Rpm
+     PUBLIC  nvSr3
+nvSr3:		DC8		0x00		; FCh		// Slew rates for speed 3
+     PUBLIC  nvDelFlg3
+nvDelFlg3:		DC8		0x00		; FDh		// Off Delay and Flags for speed 3
+     PUBLIC  nvSpd4
+nvSpd4:		DC8		0x00		; FEh		// Discrete Speed 4. Uses nvSpdExp if RPM
+     PUBLIC  nvSr4
+nvSr4:		DC8		0x00		; FFh		// Slew rates for speed 4
+     PUBLIC  nvDelFlg4
+nvDelFlg4:		DC8		0x00		; 100h	// Off Delay and Flags for speed 4
+     PUBLIC  nvSpd5
+nvSpd5:		DC8		0x00		; 101h	// Discrete Speed 5. Uses nvSpdExp if RPM
+     PUBLIC  nvSr5
+nvSr5:		DC8		0x00		; 102h	// Slew rates for speed 5
+     PUBLIC  nvDelFlg5
+nvDelFlg5:		DC8		0x00		; 103h	// Off Delay and Flags for speed 5
+     PUBLIC  nvSpd6
+nvSpd6:		DC8		0x00		; 104h	// Discrete Speed 6. Uses nvSpdExp if RPM
+     PUBLIC  nvSr6
+nvSr6:		DC8		0x00		; 105h	// Slew rates for speed 6
+     PUBLIC  nvDelFlg6
+nvDelFlg6:		DC8		0x00		; 106h	// Off Delay and Flags for speed 6
+     PUBLIC  nvSpd7
+nvSpd7:		DC8		0x00		; 107h	// Discrete Speed 7. Uses nvSpdExp if RPM
+     PUBLIC  nvSr7
+nvSr7:		DC8		0x00		; 108h	// Slew rates for speed 7
+     PUBLIC  nvDelFlg7
+nvDelFlg7:		DC8		0x00		; 109h	// Off Delay and Flags for speed 7
+     PUBLIC  nvSpd8
+nvSpd8:		DC8		0x00		; 10Ah	// Discrete Speed 8. Uses nvSpdExp if RPM
+     PUBLIC  nvSr8
+nvSr8:		DC8		0x00		; 10Bh	// Slew rates for speed 8
+     PUBLIC  nvDelFlg8
+nvDelFlg8:		DC8		0x00		; 10Ch	// Off Delay and Flags for speed 8
+     PUBLIC  nvSpd9
+nvSpd9:		DC8		0x00		; 10Dh	// Discrete Speed 9. Uses nvSpdExp if RPM
+     PUBLIC  nvSr9
+nvSr9:		DC8		0x00		; 10Eh	// Slew rates for speed 9
+     PUBLIC  nvDelFlg9
+nvDelFlg9:		DC8		0x00		; 10Fh	// Off Delay and Flags for speed 9
+     PUBLIC  nvSpd10
+nvSpd10:		DC8		0x00		; 110h	// Discrete Speed 10. Uses nvSpdExp if RPM
+     PUBLIC  nvSr10
+nvSr10:		DC8		0x00		; 111h	// Slew rates for speed 10
+     PUBLIC  nvDelFlg10
+nvDelFlg10:		DC8		0x00		; 112h	// Off Delay and Flags for speed 10
+     PUBLIC  nvSpd11
+nvSpd11:		DC8		0x00		; 113h	// Discrete Speed 11. Uses nvSpdExp if RPM
+     PUBLIC  nvSr11
+nvSr11:		DC8		0x00		; 114h	// Slew rates for speed 11
+     PUBLIC  nvDelFlg11
+nvDelFlg11:		DC8		0x00		; 115h	// Off Delay and Flags for speed 11
+     PUBLIC  nvSpd12
+nvSpd12:		DC8		0x00		; 116h	// Discrete Speed 12. Uses nvSpdExp if RPM
+     PUBLIC  nvSr12
+nvSr12:		DC8		0x00		; 117h	// Slew rates for speed 12
+     PUBLIC  nvDelFlg12
+nvDelFlg12:		DC8		0x00		; 118h	// Off Delay and Flags for speed 12
+     PUBLIC  nvSpd13
+nvSpd13:		DC8		0x00		; 119h	// Discrete Speed 13. Uses nvSpdExp if RPM
+     PUBLIC  nvSr13
+nvSr13:		DC8		0x00		; 11Ah	// Slew rates for speed 13
+     PUBLIC  nvDelFlg13
+nvDelFlg13:		DC8		0x00		; 11Bh	// Off Delay and Flags for speed 13
+     PUBLIC  nvSpd14
+nvSpd14:		DC8		0x00		; 11Ch	// Discrete Speed 14. Uses nvSpdExp if RPM
+     PUBLIC  nvSr14
+nvSr14:		DC8		0x00		; 11Dh	// Slew rates for speed 14
+     PUBLIC  nvDelFlg14
+nvDelFlg14:		DC8		0x00		; 11Eh	// Off Delay and Flags for speed 14
+     PUBLIC  nvSpd15
+nvSpd15:		DC8		0x00		; 11Fh	// Discrete Speed 15. Uses nvSpdExp if RPM
+     PUBLIC  nvSr15
+nvSr15:		DC8		0x00		; 120h	// Slew rates for speed 15
+     PUBLIC  nvDelFlg15
+nvDelFlg15:		DC8		0x00		; 121h	// Off Delay and Flags for speed 15
+     PUBLIC  nvSpd16
+nvSpd16:		DC8		0x00		; 122h	// Discrete Speed 16. Uses nvSpdExp if RPM
+     PUBLIC  nvSr16
+nvSr16:		DC8		0x00		; 123h	// Slew rates for speed 16
+     PUBLIC  nvDelFlg16
+nvDelFlg16:		DC8		0x00		; 124h	// Off Delay and Flags for speed 16
+     PUBLIC  nvSpd17
+nvSpd17:		DC8		0x00		; 125h	// Discrete Speed 17. Uses nvSpdExp if RPM
+     PUBLIC  nvSr17
+nvSr17:		DC8		0x00		; 126h	// Slew rates for speed 17
+     PUBLIC  nvDelFlg17
+nvDelFlg17:		DC8		0x00		; 127h	// Off Delay and Flags for speed 17
+     PUBLIC  nvBoostFac
+nvBoostFac:		DC8		0x00		; 128h	// Boost factor per unit.
+     PUBLIC  nvHiR_thresh
+nvHiR_thresh:	DC8		0x00		; 129h	// Hi Restriction threshold
+     PUBLIC  nvBoost_hyst
+nvBoost_hyst:	DC8		0x00		; 12Ah	// Boost hysteresis
+     PUBLIC  nvBst_flgs1
+nvBst_flgs1:	DC8		0x00		; 12Bh	// Boost option selector 1
+     PUBLIC  nvBst_flgs2
+nvBst_flgs2:	DC8		0x00		; 12Ch	// Boost option selector 2
+     PUBLIC  nvBst_flgs3
+nvBst_flgs3:	DC8		0x00		; 12Dh	// Boost option selector 3
+     PUBLIC  nvFlg6
+nvFlg6:		DC8		0x01		; 12Eh	// Model option flags 6
+     PUBLIC  nvNumTaps
+nvNumTaps:		DC8		0x00		; 12Fh	// Number of Taps programmed
+     PUBLIC  nvCfmScl
+nvCfmScl:		DC8		0x0F1		; 130h	// Blink mode scale factor
+     PUBLIC  nvMinSpd
+nvMinSpd:		DC8		0x00		; 131h	// Minimum Spd for output chan trip.  Uses nvSpdExp
+     PUBLIC  nvTqNm_min
+nvTqNm_min:		DC8		0x034		; 132h	// 0% Torque, (Newton-meters * 2048 + 1000)/8
+     PUBLIC  nvTqNm_max
+nvTqNm_max:		DC8		0x0F2		; 133h	// 100% Torque, (Newton-meters * 2048 + 1000)/64
+     PUBLIC  nvCustContType
+nvCustContType:	DC8		0x00		; 134h	// Customer control type
+     PUBLIC  nvLPshift
+nvLPshift:		DC8		0x005		; 135h	// Low pass filter constant on Torque
+     PUBLIC  nvThermK1
+nvThermK1:		DC16		0x0FFE	; 136h	// K1 Thermal constant for Infineon IQ0
+     PUBLIC  nvThermK2
+nvThermK2:		DC16		0x4E56	; 138h	// K2 Thermal constant for Infineon IQ16
+     PUBLIC  nvThermK3
+nvThermK3:		DC8		0x0E4		; 13Ah	// K3 Thermal constant for Infineon IQ20
+     PUBLIC  nvNoloadTim
+nvNoloadTim:	DC8		0x0F0		; 13Bh	// Maximum Time for No load operation
+     PUBLIC  nvMaxTorque
+nvMaxTorque:	DC8		0x020		; 13Ch	// Maximum Torque for No load Trip
+     PUBLIC  nvMaxSpeed
+nvMaxSpeed:		DC8		0x081		; 13Dh	// Maximum Spd for No load Trip.  Uses nvSpdExp
+     PUBLIC  nvTecmate
+nvTecmate:		DC8		0x0C4		; 13Eh	// Tecmate: Demand (HiNib), Threshold (LoNib)
+     PUBLIC  nvOemMfgrId_CT
+nvOemMfgrId_CT:	DC8		0x006		; 13Fh	// OEM1 ID used in Climate Talk, RBC is 6.
+     PUBLIC  nvBBflg1
+nvBBflg1:		DC8		0x03F		; 140h	// BlakBox enable flags 1
+     PUBLIC  nvBBflg2
+nvBBflg2:		DC8		0x00		; 141h	// BlakBox enable flags 2
+     PUBLIC  nvBBflg3
+nvBBflg3:		DC8		0x00		; 142h	// BlakBox enable flags 3 (future)
+     PUBLIC  nvBBflg4
+nvBBflg4:		DC8		0x00		; 143h	// BlakBox enable flags 4 (future)
+     PUBLIC  nvHistory_L
+nvHistory_L:	DC8		0x041		; 144h	// Response for DSI history command      low byte
+     PUBLIC  nvHistory_H
+nvHistory_H:	DC8		0x00		; 145h	// Response for DSI history command      high byte
+     PUBLIC  nvTi_ratio
+nvTi_ratio:		DC8		0x090		; 146h	// Torque/current ratio for 2.3 cutback
+     PUBLIC  nvDefDmnd
+nvDefDmnd:		DC8		0x000		; 147h	// Default demand used for serial timeout.
+     PUBLIC  nvVspdMin
+nvVspdMin:		DC8		0x00		; 148h	// Vsp min.  Uses nvSpdExp if Rpm
+     PUBLIC  nvVspdMax
+nvVspdMax:		DC8		0x0FF		; 149h	// Vsp max.  Uses nvSpdExp if Rpm
+     PUBLIC  nvSrVsp
+nvSrVsp:		DC8		0x007		; 14Ah	// Slew rates for Vsp
+     PUBLIC  nvVspFlgs
+nvVspFlgs:		DC8		0x000		; 14Bh	// Vsp mode attribute flags.
+     PUBLIC  nvCutExp
+nvCutExp:		DC8		0x0C0		; 14Ch	// Speed limit cutback shape param
+     PUBLIC  nvLospdLim
+nvLospdLim:		DC8		0x001		; 14Dh	// Low speed limit.  Uses nvSpdExp
+     PUBLIC  nvDelMax
+nvDelMax:		DC8		0x03B		; 14Eh	// Max Off Delay (fixed default value)
+     PUBLIC  nvCutSRoffSpd
+nvCutSRoffSpd:	DC8		0x00D		; 14Fh	// Spd to disengage cutback slew rate. Uses nvSpdExp
+     PUBLIC  nvCutSR
+nvCutSR:		DC8		0x04B		; 150h	// Cutback zone slew rate
+     PUBLIC  nvFlg1
+nvFlg1:		DC8		0x002		; 151h	// Model option flags 1
+     PUBLIC  nvFlg2
+nvFlg2:		DC8		0x004		; 152h	// Model option flags 2
+     PUBLIC  nvFlg3
+nvFlg3:		DC8		0x020		; 153h	// Model option flags 3
+     PUBLIC  nvFeatureSet
+nvFeatureSet:	DC8		0x005		; 154h	// Feature set code
+     PUBLIC  nvFeatureSet2
+nvFeatureSet2:	DC8		0x00		; 155h	// Feature set 2 code
+     PUBLIC  nvFlg5
+nvFlg5:		DC8		0x040		; 156h	// Model option flags 5
+     PUBLIC  nvFlg4
+nvFlg4:		DC8		0x01D		; 157h	// Model option flags 4
+     PUBLIC  nvCmmSig
+nvCmmSig:		DC8		0x0F8		; 158h	// Commutation pulse value.
+     PUBLIC  nvLolimBoost
+nvLolimBoost:	DC8		0x060		; 159h	// Max current boost below low spd limit
+     PUBLIC  nvLolimKp
+nvLolimKp:		DC8		0x080		; 15Ah	// Feedback proportional coeff for lowspd lim
+     PUBLIC  nvRxMinBuf
+nvRxMinBuf:		DC8		0x00A		; 15Bh	// Min num free bytes in RX buf before XOF
+     PUBLIC  nvCTimeOut
+nvCTimeOut:		DC8		0x002		; 15Ch	// Comm Timeout in 12.8sec intervals, 2 is 25.6sec
+     PUBLIC  nvOemId_CT
+nvOemId_CT:		DC8		0x00B		; 15Dh	// OEM0 ID used in Climate Talk
+     PUBLIC  nvFeatureSet3
+nvFeatureSet3:	DC8		0x004		; 15Eh	// Feature set 3 code
+     PUBLIC  GUID_0
+GUID_0:		DC8		0x00		; 15Fh	// Global Unique ID character 0
+     PUBLIC  GUID_1
+GUID_1:		DC8		0x00		; 160h	// Global Unique ID character 1
+     PUBLIC  GUID_2
+GUID_2:		DC8		0x00		; 161h	// Global Unique ID character 2
+     PUBLIC  GUID_3
+GUID_3:		DC8		0x00		; 162h	// Global Unique ID character 3
+     PUBLIC  GUID_4
+GUID_4:		DC8		0x00		; 163h	// Global Unique ID character 4
+     PUBLIC  GUID_5
+GUID_5:		DC8		0x00		; 164h	// Global Unique ID character 5
+     PUBLIC  GUID_6
+GUID_6:		DC8		0x00		; 165h	// Global Unique ID character 6
+     PUBLIC  GUID_7
+GUID_7:		DC8		0x00		; 166h	// Global Unique ID character 7
+     PUBLIC  GUID_8
+GUID_8:		DC8		0x00		; 167h	// Global Unique ID character 8
+     PUBLIC  GUID_9
+GUID_9:		DC8		0x00		; 168h	// Global Unique ID character 9
+     PUBLIC  GUID_10
+GUID_10:		DC8		0x00		; 169h	// Global Unique ID character 10
+     PUBLIC  GUID_11
+GUID_11:		DC8		0x00		; 16Ah	// Global Unique ID character 11
+     PUBLIC  GUID_12
+GUID_12:		DC8		0x00		; 16Bh	// Global Unique ID character 12
+     PUBLIC  GUID_13
+GUID_13:		DC8		0x00		; 16Ch	// Global Unique ID character 13
+     PUBLIC  GUID_14
+GUID_14:		DC8		0x00		; 16Dh	// Global Unique ID character 14
+     PUBLIC  GUID_15
+GUID_15:		DC8		0x00		; 16Eh	// Global Unique ID character 15
+     PUBLIC  nvLtr1
+nvLtr1:		DC8		0x00		; 16Fh	// Customer letter 1
+     PUBLIC  nvLtr2
+nvLtr2:		DC8		0x00		; 170h	// Customer letter 2
+     PUBLIC  nvLtr3
+nvLtr3:		DC8		0x00		; 171h	// Customer letter 3
+     PUBLIC  nvLtr4
+nvLtr4:		DC8		0x00		; 172h	// Customer letter 4
+     PUBLIC  nvLtr5
+nvLtr5:		DC8		0x00		; 173h	// Customer letter 5
+     PUBLIC  nvChecksum1
+nvChecksum1:	DC16		0x0A89E	; 174h	// Checksum for block 1
+							
+
+;// Production control values					
+     PUBLIC  nvIzRec1
+nvIzRec1:		DC8		0x00		; 176h	// Izero after control final cal
+     PUBLIC  nvIsRec1
+nvIsRec1:		DC8		0x00		; 177h	// Iscale after control final cal
+     PUBLIC  nvIzRec2
+nvIzRec2:		DC8		0x00		; 178h	// Izero after motor final cal
+     PUBLIC  nvIsRec2
+nvIsRec2:		DC8		0x00		; 179h	// Iscale after motor final cal
+     PUBLIC  nvSerNum
+nvSerNum:		DC16		0xFFFF	; 17Ah	// Serial number LSbyte
+			DC16		0x0FFFF			// High word
+     PUBLIC  nvContRev
+nvContRev:		DC8		0x0AA		; 17Eh	// Control hardware revision
+     PUBLIC  nvContType
+nvContType:		DC8		0x004		; 17Fh	// Control Hp
+     PUBLIC  nvContFixt
+nvContFixt:		DC8		0x00		; 180h	// Control test cell number
+     PUBLIC  nvMotrFixt
+nvMotrFixt:		DC8		0x00		; 181h	// Motor test cell number
+     PUBLIC  nvTestCount
+nvTestCount:	DC8		0x00		; 182h	// Times through motor test
+     PUBLIC  nvPassmarksNew
+nvPassmarksNew:	DC8		0x0FF		; 183h	// Pass bits for testers
+     PUBLIC  nvMfrDate0
+nvMfrDate0:		DC8		0x0FF		; 184h	// Control inckt date code, char 0
+     PUBLIC  nvMfrDate1
+nvMfrDate1:		DC8		0x0FF		; 185h	// Control inckt date code, char 1
+     PUBLIC  nvMfrDate2
+nvMfrDate2:		DC8		0x0FF		; 186h	// Control inckt date code, char 2
+     PUBLIC  nvMfrDate3
+nvMfrDate3:		DC8		0x0FF		; 187h	// Control inckt date code, char 3
+     PUBLIC  nvMfrDate4
+nvMfrDate4:		DC8		0x0FF		; 188h	// Control inckt date code, char 4
+     PUBLIC  nvMfrDate5
+nvMfrDate5:		DC8		0x0FF		; 189h	// Control inckt date code, char 5
+     PUBLIC  nvProgBy
+nvProgBy:		DC8		0x00		; 18Ah	// Last Programmed by
+     PUBLIC  nvToolRevLim
+nvToolRevLim:	DC8		0x005		; 18Bh	// Tool Rev lower Limit
+     PUBLIC  nvVb2_ratio
+nvVb2_ratio:	DC8		0x080		; 18Ch	// Cal for thermistor A/D, Def is 080h
+     PUBLIC  ICT_CalRev
+ICT_CalRev:		DC8		0x00		; 18Dh	// Rev code of ICT calibration firmware.
+     PUBLIC  ICT_Fixt
+ICT_Fixt:		DC8		0x0FF		; 18Eh	// ICT test cell number
+     PUBLIC  nvFWRevShort
+nvFWRevShort:	DC8		0x001		; 18Fh	// Short Firmware Rev used in PV1,PV2,Clmttalk
+     PUBLIC  nvMechType
+nvMechType:		DC8		0x00		; 190h	// Mechanical features
+     PUBLIC  nvFcompRec
+nvFcompRec:		DC8		0x0FF		; 191h	// Oscillator initial error correction record
+     PUBLIC  nvCeiling
+nvCeiling:		DC8		0x0FF		; 192h	// Max cal adjust
+     PUBLIC  nvFreq_cmp0
+nvFreq_cmp0:	DC8		0xCE		; 193h	// Frequency comp for 3 steps, less than -55deg (s8)
+     PUBLIC  nvFreq_cmp1
+nvFreq_cmp1:	DC8		0xDD		; 194h	// Frequency comp for 2 steps, less than -33deg (s8)
+     PUBLIC  nvFreq_cmp2
+nvFreq_cmp2:	DC8		0xF6		; 195h	// Frequency comp for 1 step, less than -10deg (s8)
+     PUBLIC  nvFreq_cmp3
+nvFreq_cmp3:	DC8		0x78		; 196h	// Frequency comp for 0 steps, less than 120deg (s8)
+     PUBLIC  nvMPT
+nvMPT:		DC8		0x022		; 197h	// Motor Product Type
+     PUBLIC  nvChecksum2
+nvChecksum2:	DC16		0x0027A	; 198h	// Checksum for block 2
+							
+							
+							
+							
+							
+
+;// Other addresses set aside in vEE Block					
+     PUBLIC  TB_ver_major
+TB_ver_major:	DC8		0x0FF		; 19Ah	// Toolbox/Factory Programmer major value
+     PUBLIC  TB_ver_minor
+TB_ver_minor:	DC8		0x0FF		; 19Bh	// Toolbox/Factory Programmer minor value
+     PUBLIC  TB_ver_build
+TB_ver_build:	DC16		0x0FFFF	; 19Ch	// Toolbox/Factory Programmer build value
+     PUBLIC  TB_ver_rev
+TB_ver_rev:		DC16		0x0FFFF	; 19Eh	// Toolbox/Factory Programmer rev value
+							
+							
+
+;// If the unit failed at burn-in, fault information is stored here.					
+     PUBLIC  BI_FaultCode
+BI_FaultCode:	DC8		0x0FF		; 1A0h	// Burn-in Fault Code
+     PUBLIC  BI_FailValue_L
+BI_FailValue_L:	DC8		0x0FF	      ; 1A1h	// Burn-in failed reading for given code (low byte)
+     PUBLIC  BI_FailValue_H
+BI_FailValue_H:	DC8		0x0FF	      ; 1A2h	// Burn-in failed reading for given code (high byte)
+     PUBLIC  BI_NumCycles
+BI_NumCycles:	DC8		0x0FF		; 1A3h	// Burn-in number of cycles completed before fault
+
+;// Passmark bit half-word equivalents.					
+     PUBLIC  NFBurnin
+NFBurnin:		DC16		0x0FFFF	; 1A4h	// bit 0 - Failed by Burn-In Tester.
+     PUBLIC  NPCTInitial
+NPCTInitial:	DC16		0x0FFFF	; 1A6h	// bit 1 - Not Passed Control Test Initial Read 
+     PUBLIC  NFCTHipot
+NFCTHipot:		DC16		0x0FFFF	; 1A8h	// bit 2 - Not Failed Control Hipot Test (Kimball)
+     PUBLIC  NPMTinitial
+NPMTinitial:	DC16		0x0FFFF	; 1AAh	// bit 3 - Not Passed Motor Test Initial Read (AE)
+     PUBLIC  NPMTPostBI
+NPMTPostBI:		DC16		0x0FFFF	; 1ACh	// bit 4 - Not Passed Motor Test After Burn-In (AE)
+     PUBLIC  NPCustInitial
+NPCustInitial:	DC16		0x0FFFF	; 1AEh	// bit 5 - Not Passed Customer Initial Read
+     PUBLIC  NPBurnin
+NPBurnin:		DC16		0x0FFFF	; 1B0h	// bit 6 - Not Burned-In
+     PUBLIC  NFMTHipot
+NFMTHipot:		DC16		0x0FFFF	; 1B2h	// bit 7 - Not Failed Motor Hipot Test (AE)
+     PUBLIC  nvSubGroup
+nvSubGroup:		DC8		0x003		; 1B4h	// Control sub-group printed on label
+     PUBLIC  nvSpare437
+nvSpare437:		DC8		0x0FF		; 1B5h		
+     PUBLIC  nvSpare438
+nvSpare438:		DC8		0x0FF		; 1B6h	// spare
+     PUBLIC  nvSpare439
+nvSpare439:		DC8		0x0FF		; 1B7h	// spare
+     PUBLIC  nvSpare440
+nvSpare440:		DC8		0x0FF		; 1B8h	// spare
+     PUBLIC  nvSpare441
+nvSpare441:		DC8		0x0FF		; 1B9h	// spare
+     PUBLIC  nvSpare442
+nvSpare442:		DC8		0x0FF		; 1BAh	// spare
+     PUBLIC  nvSpare443
+nvSpare443:		DC8		0x0FF		; 1BBh	// spare
+
+
+;// Extended parameter block					
+     PUBLIC  nvHarm
+nvHarm:					// First element of harmonic struct
+     PUBLIC  nvAmp_h0
+nvAmp_h0:		DC16		0xEB00	; 1BCh	// Harmonic[0] amplitude, s16
+     PUBLIC  nvNumber_h0
+nvNumber_h0:	DC8		0x006		; 1BEh	// Harmonic[0] number, u8
+     PUBLIC  nvHbits_h0
+nvHbits_h0:		DC8		0x002		; 1BFh	// Harmonic[0] sign and point count
+     PUBLIC  nvAmp_h1
+nvAmp_h1:		DC16		0x0000	; 1C0h	// Harmonic[1] amplitude, s16
+     PUBLIC  nvNumber_h1
+nvNumber_h1:	DC8		0x000		; 1C2h	// Harmonic[1] number, u8
+     PUBLIC  nvHbits_h1
+nvHbits_h1:		DC8		0x000		; 1C3h	// Harmonic[1] sign and point count
+     PUBLIC  nvAmp_h2
+nvAmp_h2:		DC16		0x0000	; 1C4h	// Harmonic[2] amplitude, s16
+     PUBLIC  nvNumber_h2
+nvNumber_h2:	DC8		0x000		; 1C6h	// Harmonic[2] number, u8
+     PUBLIC  nvHbits_h2
+nvHbits_h2:		DC8		0x000		; 1C7h	// Harmonic[2] sign and point count
+     PUBLIC  nvHprofiles
+nvHprofiles:				// 30 bytes reserved for profiles. (10 points)
+     PUBLIC  nvHspd_0
+nvHspd_0:		DC8		0x000		; 1C8h	// Start of profiles table. Speed break 0
+     PUBLIC  nvHamp_0
+nvHamp_0:		DC8		0x0FF		; 1C9h	// Amplitude break 0
+     PUBLIC  nvHph_0
+nvHph_0:		DC8		0x027		; 1CAh	// Phase break 0
+     PUBLIC  nvHspd_1
+nvHspd_1:		DC8		0x0FF		; 1CBh	// Speed break 1
+     PUBLIC  nvHamp_1
+nvHamp_1:		DC8		0x0FF		; 1CCh	// Amplitude break 1
+     PUBLIC  nvHph_1
+nvHph_1:		DC8		0x027		; 1CDh	// Phase break 1
+     PUBLIC  nvHspd_2
+nvHspd_2:		DC8		0x000		; 1CEh	// Speed break 2
+     PUBLIC  nvHamp_2
+nvHamp_2:		DC8		0x000		; 1CFh	// Amplitude break 2
+     PUBLIC  nvHph_2
+nvHph_2:		DC8		0x000		; 1D0h	// Phase break 2
+     PUBLIC  nvHspd_3
+nvHspd_3:		DC8		0x000		; 1D1h	// Speed break 3
+     PUBLIC  nvHamp_3
+nvHamp_3:		DC8		0x000		; 1D2h	// Amplitude break 3
+     PUBLIC  nvHph_3
+nvHph_3:		DC8		0x000		; 1D3h	// Phase break 3
+     PUBLIC  nvHspd_4
+nvHspd_4:		DC8		0x000		; 1D4h	// Speed break 4
+     PUBLIC  nvHamp_4
+nvHamp_4:		DC8		0x000		; 1D5h	// Amplitude break 4
+     PUBLIC  nvHph_4
+nvHph_4:		DC8		0x000		; 1D6h	// Phase break 4
+     PUBLIC  nvHspd_5
+nvHspd_5:		DC8		0x000		; 1D7h	// Speed break 5
+     PUBLIC  nvHamp_5
+nvHamp_5:		DC8		0x000		; 1D8h	// Amplitude break 5
+     PUBLIC  nvHph_5
+nvHph_5:		DC8		0x000		; 1D9h	// Phase break 5
+     PUBLIC  nvHspd_6
+nvHspd_6:		DC8		0x000		; 1DAh	// Speed break 6
+     PUBLIC  nvHamp_6
+nvHamp_6:		DC8		0x000		; 1DBh	// Amplitude break 6
+     PUBLIC  nvHph_6
+nvHph_6:		DC8		0x000		; 1DCh	// Phase break 6
+     PUBLIC  nvHspd_7
+nvHspd_7:		DC8		0x000		; 1DDh	// Speed break 7
+     PUBLIC  nvHamp_7
+nvHamp_7:		DC8		0x000		; 1DEh	// Amplitude break 7
+     PUBLIC  nvHph_7
+nvHph_7:		DC8		0x000		; 1DFh	// Phase break 7
+     PUBLIC  nvHspd_8
+nvHspd_8:		DC8		0x000		; 1E0h	// Speed break 8
+     PUBLIC  nvHamp_8
+nvHamp_8:		DC8		0x000		; 1E1h	// Amplitude break 8
+     PUBLIC  nvHph_8
+nvHph_8:		DC8		0x000		; 1E2h	// Phase break 8
+     PUBLIC  nvHspd_last
+nvHspd_last:				// Use to limit pointer
+     PUBLIC  nvHspd_9
+nvHspd_9:		DC8		0x000		; 1E3h	// Speed break 9
+     PUBLIC  nvHamp_9
+nvHamp_9:		DC8		0x000		; 1E4h	// Amplitude break 9
+     PUBLIC  nvHph_9
+nvHph_9:		DC8		0x000		; 1E5h	// Phase break 9
+     PUBLIC  nvUladMaxDiff
+nvUladMaxDiff:	DC16		0x0032	; 1E6h	// Ulad sample reject threshold
+     PUBLIC  nvNch
+nvNch:					// First element of speed notch struct
+     PUBLIC  nvCenter_s0
+nvCenter_s0:	DC8		0x000		; 1E8h	// Center speed [0], u8  Rpm * 22 /256
+     PUBLIC	 nvWidth_0
+nvWidth_0:		DC8		0x000		; 1E9h	// Notch width [0], u8  Rpm * 22 / 16 / 2
+     PUBLIC	 nvStep_s0
+nvStep_s0:		DC8		0x000		; 1EAh	// Step size [0], u8
+     PUBLIC  nvCenter_s1
+nvCenter_s1:	DC8		0x000		; 1EBh	// Center speed [1], u8  Rpm * 22 /256
+     PUBLIC	 nvWidth_1
+nvWidth_1:		DC8		0x000		; 1ECh	// Notch width [1], u8  Rpm * 22 / 16 / 2
+     PUBLIC	 nvStep_s1
+nvStep_s1:		DC8		0x000		; 1EDh	// Step size [1], u8
+     PUBLIC  nvNch_delay
+nvNch_delay:	DC8		0x000		; 1EEh	// Holdoff delay, 100mS steps
+     PUBLIC  nvOnDel
+nvOnDel:					// First element of on-delay table.
+     PUBLIC	 nvOnDel_0
+nvOnDel_0:		DC8		0x011		; 1EFh	// On delay 0, 1
+     PUBLIC	 nvOnDel_2
+nvOnDel_2:		DC8		0x011		; 1F0h	// On delay 2, 3
+     PUBLIC	 nvOnDel_4
+nvOnDel_4:	      DC8		0x011		; 1F1h	// On delay 4, 5
+     PUBLIC  nvOnDel_6
+nvOnDel_6:		DC8		0x011		; 1F2h	// On delay 6, 7
+     PUBLIC  nvOnDel_8
+nvOnDel_8:		DC8		0x011		; 1F3h	// On delay 8, 9
+     PUBLIC  nvOnDel_10
+nvOnDel_10:		DC8		0x011		; 1F4h	// On delay 10, 11
+     PUBLIC  nvOnDel_12
+nvOnDel_12:		DC8		0x011		; 1F5h	// On delay 12, 13
+     PUBLIC  nvOnDel_14
+nvOnDel_14:		DC8		0x011		; 1F6h	// On delay 14, 15
+     PUBLIC  nvOnDel_16
+nvOnDel_16:		DC8		0x011		; 1F7h	// On delay 16, 17
+     PUBLIC  nvI2TOvLdLimit
+nvI2TOvLdLimit:	DC16		0x0028	; 1F8h	// I2T shutdown threshold
+     PUBLIC  nvI2TRatedISq
+nvI2TRatedISq:	DC16		0x010D	; 1FAh	// I2T limit param
+     PUBLIC  nvI2TMaxFall
+nvI2TMaxFall:	DC16		0x010D	; 1FCh	// I2T cooling param
+     PUBLIC  nvGainRatio
+nvGainRatio:	DC16		0xCB1E	; 1FEh	// Ratio external/internal gain.
+     PUBLIC  nvVrefMaxDiff
+nvVrefMaxDiff:	DC8		0x014		; 200h	// Max difference for V2 Vref check
+     PUBLIC  nvGainChkMax
+nvGainChkMax:	DC8		0x040		; 201h	// Max difference for gain check, IQ3
+     PUBLIC  nvMaxVSVM
+nvMaxVSVM:		DC8		0x022		; 202h	// Max SVM voltage to measure alt Ib, IQ1
+     PUBLIC  nvSpare515
+nvSpare515:		DC8		0x000		; 203h	// Response delay time for DSI, 0xFF=32.7 mS
+     PUBLIC  nvChecksum3
+nvChecksum3:	DC16		0x0B312	; 204h	// Checksum for block 3
+
+
+
+#endif /* vEEdata_SL_H */
+ END
