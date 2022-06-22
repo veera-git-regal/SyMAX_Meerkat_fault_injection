@@ -8,7 +8,7 @@
   */
 
 /* Includes --------------------------------------------------------------------------------------------------------------------*/
-#include "driver_usart1.h"
+#include "driver_usart2.h"
 
 
 /* Content ---------------------------------------------------------------------------------------------------------------------*/
@@ -17,7 +17,7 @@ extern ProcessInfo processInfoTable[];
 #define DemandPollPeriod 2000                                                       //time period for checking and sending 0-10V and speed data to motor board
 uint64_t tt_DemandTime;
 
-Usart1_Control* usart1Control_AppLocal;
+Usart2_Control* usart2Control_AppLocal;
 uint8_t testCounter = 0;
 uint64_t errorCounter = 0;
 
@@ -42,17 +42,17 @@ uint8_t p_moduleApp_u32(uint8_t module_id_u8, uint8_t prev_state_u8, uint8_t nex
     uint8_t return_state_u8 = 0;
     switch (next_State_u8) {
         case INIT_APP: {
-            uint8_t Usart1index  = getProcessInfoIndex(MODULE_USART1); //return Process index from processInfo array
-            usart1Control_AppLocal = (Usart1_Control*)((*(processInfoTable[Usart1index].Sched_DrvData.p_masterSharedMem_u32)).p_ramBuf_u8);    //Get structured memory for USART1
+            uint8_t Usart2index  = getProcessInfoIndex(MODULE_USART2); //return Process index from processInfo array
+            usart2Control_AppLocal = (Usart2_Control*)((*(processInfoTable[Usart2index].Sched_DrvData.p_masterSharedMem_u32)).p_ramBuf_u8);    //Get structured memory for USART2
             tt_DemandTime = getSysCount() + DemandPollPeriod;                          //store time tick value  
             return_state_u8 = RUN_APP;
             break;
         }
         case RUN_APP: {
             if (getSysCount() >= tt_DemandTime) {
-                //unsigned char speedTx[] = {0x55, 0x01, 0x00, 0xFF, 0x00, (unsigned char)testCounter, (unsigned char)module_id_u8, 0xCC};
-                //unsigned int speedLen = sizeof(speedTx);
-        //        RingBuf_WriteBlock((*usart1Control_AppLocal).seqMemTX_u32, speedTx, &speedLen);             
+    //            unsigned char speedTx[] = {0x55, 0x01, 0x00, 0xFF, 0x00, (unsigned char)testCounter, (unsigned char)module_id_u8, 0xCC};
+   //             unsigned int speedLen = sizeof(speedTx);
+        //        RingBuf_WriteBlock((*usart2Control_AppLocal).seqMemTX_u32, speedTx, &speedLen);             
                 tt_DemandTime = getSysCount() + DemandPollPeriod;                          //update next time tick value 
             }      
             
@@ -61,7 +61,7 @@ uint8_t p_moduleApp_u32(uint8_t module_id_u8, uint8_t prev_state_u8, uint8_t nex
             tt_DemandtmpDelayTime = getSysCount() + tmpDelayPeriod + errorCounter;                          //update next time tick value 
             if(errorCounter >= 4){ // && (tmpry4Test == true)) {                            //test the error reporting by software interrupt
               setupSoftwareIRQ(module_id_u8, MODULE_ERR_LOGHANDLE, 0xEF, 0x01, 0x00, NULL);
-              tmpry4Test = false;
+  //            tmpry4Test = false;
               while(getSysCount() < tt_DemandtmpDelayTime){}
               
             }

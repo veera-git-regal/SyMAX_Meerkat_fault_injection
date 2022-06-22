@@ -47,14 +47,6 @@ bool UI_SerialCommunicationATRTimeHasElapsed(void);
 void UI_SerialCommunicationTimeOutStop(void);
 void UI_SerialCommunicationTimeOutStart(void);
 
-
-#define ENABLE_DEBUG_OUTPUT_VIA_STMC_PORT 0
-#if ENABLE_DEBUG_OUTPUT_VIA_STMC_PORT >= 1
-  #define REGAL_DEBUG_MESSAGE_ID 0xFF
-  void Regal_SendDebugMessage(uint8_t *buffer, uint8_t size);
-#endif //ENABLE_DEBUG_OUTPUT_VIA_STMC_PORT >= 1
-
-
 #endif /* __UITASK_H */
 
 /******************* (C) COPYRIGHT 2019 STMicroelectronics *****END OF FILE****/

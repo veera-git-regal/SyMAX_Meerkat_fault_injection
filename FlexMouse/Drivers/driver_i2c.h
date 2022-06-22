@@ -26,13 +26,13 @@ extern "C" {
 #endif /* __cplusplus */
   
   ////////////// define EEprom memory usage//////////////////
-#define EEpromPageModeSize      16             //24AA16 byte per page mode size
+#define EEpromPageModeSize      16             //24AA16 page mode size
 #define fixedAreaStartingAddr   0x200
-#define fixedAreaLen            0x5FF          //512 byte in fixed area
+#define fixedAreaLen            0x5FF          //1.5 kbyte in fixed area
 #define dynamicAreaStartingAddr 0x000          //dynamic area will be treat as a circular buffer
-#define dynamicAreaLen          0x1FF          //1.5kbyte in dynamic area
-#define dynamicAreaPtr          0x7FE          //dynamic area address pointer 
-#define maxSizeEEpromFrame      0xff           //
+#define dynamicAreaLen          0x1FF          //0.5kbyte in dynamic area
+#define dynamicAreaPtr          0x7FE           //dynamic area address pointer 
+#define maxSizeEEpromFrame      0xff             //
 
 /* User parameters -------------------------------------------------------------------------------------------------------------*/
 #define SLAVE_OWN_ADDRESS       0xA0 
@@ -57,7 +57,6 @@ static uint8_t i2cBufIndx = 0;
 typedef struct {
     Ring_Buf_Handle SeqMemRX_u32;
     Ring_Buf_Handle SeqMemTX_u32;
-    uint8_t I2c_busy_u8;
     __IO uint8_t I2C_Competed;
     uint8_t* aTransmitBuffer;                   //max 16byte for 24AA16 can accept
     uint8_t* aReceiveBuffer;

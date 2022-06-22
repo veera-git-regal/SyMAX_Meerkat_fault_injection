@@ -25,6 +25,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "inrush_current_limiter.h"
 #include "mc_type.h"
+#include "hardware_config.h"
 
 /** @addtogroup MCSDK
   * @{
@@ -62,7 +63,9 @@ __weak void ICL_Init( ICL_Handle_t * pHandle, BusVoltageSensor_Handle_t * pVBS, 
   pHandle->pVBS = pVBS;
   pHandle->pDOUT = pDOUT;
   pHandle->ICLstate = ICL_ACTIVE;
-  //DOUT_SetOutputState( pDOUT, ACTIVE );
+#if ((HARDWARE_VERSION == HARDWARE_VERSION_4p5KW) || (HARDWARE_VERSION == HARDWARE_VERSION_8KW))
+  DOUT_SetOutputState( pDOUT, ACTIVE );
+#endif
   pHandle->hICLTicksCounter = 0u;
   wAux = ( uint32_t )( pHandle->hICLDurationms );
   wAux *= ( uint32_t )( pHandle->hICLFrequencyHz );
@@ -123,7 +126,9 @@ __weak ICL_State_t ICL_Exec( ICL_Handle_t * pHandle )
       /* ICL is active: if bus is present deactivate the ICL */
       if ( VBS_CheckVbus( pHandle->pVBS ) != MC_UNDER_VOLT )
       {
-        //DOUT_SetOutputState( pHandle->pDOUT, INACTIVE );
+#if ((HARDWARE_VERSION == HARDWARE_VERSION_4p5KW) || (HARDWARE_VERSION == HARDWARE_VERSION_8KW))
+        DOUT_SetOutputState( pHandle->pDOUT, INACTIVE );
+#endif
         pHandle->ICLstate = ICL_DEACTIVATION;
         pHandle->hICLTicksCounter = pHandle->hICLTotalTicks;
       }
@@ -135,7 +140,9 @@ __weak ICL_State_t ICL_Exec( ICL_Handle_t * pHandle )
       /* ICL is inactive: if bus is not present activate the ICL */
       if ( VBS_CheckVbus( pHandle->pVBS ) == MC_UNDER_VOLT )
       {
-        //DOUT_SetOutputState( pHandle->pDOUT, ACTIVE );
+#if ((HARDWARE_VERSION == HARDWARE_VERSION_4p5KW) || (HARDWARE_VERSION == HARDWARE_VERSION_8KW))
+        DOUT_SetOutputState( pHandle->pDOUT, ACTIVE );
+#endif
         pHandle->ICLstate = ICL_ACTIVATION;
         pHandle->hICLTicksCounter = pHandle->hICLTotalTicks;
       }

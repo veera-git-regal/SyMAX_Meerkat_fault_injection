@@ -23,7 +23,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "r_divider_bus_voltage_sensor.h"
 #include "regular_conversion_manager.h"
-#include "module_meerkat_interface_config.h"
+#include "parameters_conversion_f30x.h"
+#include "module_meerkat_interface.h"
 
 /** @addtogroup MCSDK
   * @{
@@ -83,12 +84,11 @@ static uint16_t RVBS_ConvertVbusFiltrered( RDivider_Handle_t * pHandle )
   uint8_t vindex;
   uint16_t max = 0, min = 0;
   uint32_t tot = 0u;
-  
+
   for ( vindex = 0; vindex < pHandle->LowPassFilterBW; )
   {
     hAux = RCM_ExecRegularConv(pHandle->convHandle);
-  //  meerkatCore_Vbus_u16 = 0xAF50;
-    meerkatCore_Vbus_u16 = hAux;
+
     if ( hAux != 0xFFFFu )
     {
       if ( vindex == 0 )
@@ -112,7 +112,12 @@ static uint16_t RVBS_ConvertVbusFiltrered( RDivider_Handle_t * pHandle )
       tot += hAux;
     }
   }
-
+#if DISABLE_MEERKAT_SAFETY_MODULE <= 0
+  //add single reading of vbus, not average, so that safety core can verify 
+  //that the ADC reading the vbus is not latched to 1 value
+  // Shifting left a nibble since the ADC result register is left justified
+  MeerkatInterface_AddVbusSample( hAux >> 4 );  
+#endif   
   tot -= max;
   tot -= min;
   return ( uint16_t )( tot / ( pHandle->LowPassFilterBW - 2u ) );
@@ -128,13 +133,12 @@ __weak uint16_t RVBS_CalcAvVbusFilt( RDivider_Handle_t * pHandle )
 {
   uint32_t wtemp;
   uint16_t hAux;
-  uint8_t i;  
- 
+  uint8_t i;
+
   hAux = RVBS_ConvertVbusFiltrered( pHandle );
-  MeerkatInterface_AddVrefSample(hAux);
+
   if ( hAux != 0xFFFF )
   {
-  
     pHandle->aBuffer[pHandle->index] = hAux;
     wtemp = 0;
     for ( i = 0; i < pHandle->LowPassFilterBW; i++ )

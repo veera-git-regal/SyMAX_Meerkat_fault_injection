@@ -16,7 +16,7 @@
 /* Includes --------------------------------------------------------------------------------------------------------------------*/
 #include <stdbool.h>
 #include <stdint.h>
-
+#include "main.h"
 //#include "stm32f4xx_hal.h" 
 #include "stm32f3xx_hal.h" //SPA
 
@@ -46,7 +46,6 @@ extern "C" {
 //static uint64_t tickCounter = 0; //SPA
 
 /* global parameters -----------------------------------------------------------------------------------------------------------*/  
-static uint8_t reallocError = 0;                                        //Heap memory allocation error counter   //house keeping code
 
 /* User parameters -------------------------------------------------------------------------------------------------------------*/
 // General
@@ -62,120 +61,11 @@ extern __root const uint32_t App_CRC @ "app_crc32_rom";// = 0x00000000; // This 
 #define MODULE_APP_IRQ_STATUS     DEFAULT_IRQ_STATE                    //Pam: set your software interrupt service point/state 
 #define MODULE_APP_PROCESS_STATUS   0x00                               //Pam: all module can in either one of these status:- 
                                                                                       // -PROCESS_STATUS_RUNNING 0x00     <Normal running state>
-#define MODULE_RTC_ID                   MODULE_RTC
-#define MODULE_RTC_FUNCTION_POINTER     &p_moduleRTC_u32
-#define MODULE_RTC_TOTAL_SEQ     0
-#define MODULE_RTC_TOTAL_STRUCT     1
-#define MODULE_RTC_PREV_STATE       0
-#define MODULE_RTC_NEXT_STATE           0
-#define MODULE_RTC_IRQ_STATUS     DEFAULT_IRQ_STATE
-#define MODULE_RTC_PROCESS_STATUS       0
-#define MODULE_RTC_MASTER_SHARED_MEM 0                                                                                   // -PROCESS_STATUS_KILLED  0xFF     <This module will never execute>
+                                                                                      // -PROCESS_STATUS_KILLED  0xFF     <This module will never execute>
                                                                                       // -PROCESS_STATUS_PAUSED  0x05     <This module is paused waiting for other module/s to resume running>
 #define MODULE_APP_MASTER_SHARED_MEM 0                           //Pam: Attach the structured-memory pointer after created to kernal module/task list. Any other module\s going to use or link to 
                                                                             //this module can search the kernal module/task list with the App ID, then find out the structured-memory as the entry point 
 /** pam procedure #1 of Module insertion  :  to define the default task parameters end **/
-
-#define MODULE_MC_STATEMACHINE_ID                   MODULE_MC_STATEMACHINE 
-#define MODULE_MC_STATEMACHINE_FUNCTION_POINTER     &module_Mc_StateMachine_u32 
-#define MODULE_MC_STATEMACHINE_TOTAL_SEQ        0
-#define MODULE_MC_STATEMACHINE_TOTAL_STRUCT     1
-#define MODULE_MC_STATEMACHINE_PREV_STATE       0
-#define MODULE_MC_STATEMACHINE_NEXT_STATE       0
-#define MODULE_MC_STATEMACHINE_IRQ_STATUS     DEFAULT_IRQ_STATE
-#define MODULE_MC_STATEMACHINE_PROCESS_STATUS   0
-#define MODULE_MC_STATEMACHINE_MASTER_SHARED_MEM 0
-
-#define MODULE_SHORT_CMD_ID                   MODULE_SHORT_CMD
-#define MODULE_SHORT_CMD_FUNCTION_POINTER     &moduleShortCmd_u32 
-#define MODULE_SHORT_CMD_TOTAL_SEQ        0
-#define MODULE_SHORT_CMD_TOTAL_STRUCT     1
-#define MODULE_SHORT_CMD_PREV_STATE       0
-#define MODULE_SHORT_CMD_NEXT_STATE       0
-#define MODULE_SHORT_CMD_IRQ_STATUS     DEFAULT_IRQ_STATE
-#define MODULE_SHORT_CMD_PROCESS_STATUS   0
-#define MODULE_SHORT_CMD_MASTER_SHARED_MEM 0
-
-#define MODULE_I2C_ID                   MODULE_I2C
-#define MODULE_I2C_FUNCTION_POINTER     &moduleI2c_u32
-#define MODULE_I2C_TOTAL_SEQ        2
-#define MODULE_I2C_TOTAL_STRUCT     1
-#define MODULE_I2C_PREV_STATE       0
-#define MODULE_I2C_NEXT_STATE       0
-#define MODULE_I2C_IRQ_STATUS     DEFAULT_IRQ_STATE
-#define MODULE_I2C_PROCESS_STATUS   0
-#define MODULE_I2C_MASTER_SHARED_MEM 0
-
-
-#define MODULE_REPLY_CMD_ID                   MODULE_REPLY_CMD
-#define MODULE_REPLY_CMD_FUNCTION_POINTER     &moduleReplyCmd_u32 
-#define MODULE_REPLY_CMD_TOTAL_SEQ        0
-#define MODULE_REPLY_CMD_TOTAL_STRUCT     1
-#define MODULE_REPLY_CMD_PREV_STATE       0
-#define MODULE_REPLY_CMD_NEXT_STATE       0
-#define MODULE_REPLY_CMD_IRQ_STATUS     DEFAULT_IRQ_STATE
-#define MODULE_REPLY_CMD_PROCESS_STATUS   0
-#define MODULE_REPLY_CMD_MASTER_SHARED_MEM 0
-
-#define MODULE_FLASH_UPDATE_CMD_ID                   MODULE_FLASH_UPDATE_CMD
-#define MODULE_FLASH_UPDATE_CMD_FUNCTION_POINTER     &moduleFlashUpdateCmd_u32
-#define MODULE_FLASH_UPDATE_CMD_TOTAL_SEQ        0
-#define MODULE_FLASH_UPDATE_CMD_TOTAL_STRUCT     1
-#define MODULE_FLASH_UPDATE_CMD_PREV_STATE       0
-#define MODULE_FLASH_UPDATE_CMD_NEXT_STATE       0
-#define MODULE_FLASH_UPDATE_CMD_IRQ_STATUS     DEFAULT_IRQ_STATE
-#define MODULE_FLASH_UPDATE_CMD_PROCESS_STATUS   0
-#define MODULE_FLASH_UPDATE_CMD_MASTER_SHARED_MEM 0
-
-#define MODULE_FLASH_REGISTER_CMD_ID                   MODULE_FLASH_REGISTER_CMD
-#define MODULE_FLASH_REGISTER_CMD_FUNCTION_POINTER     &moduleFlashRegisterCmd_u32
-#define MODULE_FLASH_REGISTER_CMD_TOTAL_SEQ        0
-#define MODULE_FLASH_REGISTER_CMD_TOTAL_STRUCT     1
-#define MODULE_FLASH_REGISTER_CMD_PREV_STATE       0
-#define MODULE_FLASH_REGISTER_CMD_NEXT_STATE       0
-#define MODULE_FLASH_REGISTER_CMD_IRQ_STATUS     DEFAULT_IRQ_STATE
-#define MODULE_FLASH_REGISTER_CMD_PROCESS_STATUS   0
-#define MODULE_FLASH_REGISTER_CMD_MASTER_SHARED_MEM 0
-
-#define MODULE_AUTOACK_ID                   MODULE_AUTOACK
-#define MODULE_AUTOACK_FUNCTION_POINTER     &moduleAutoAck_u32
-#define MODULE_AUTOACK_TOTAL_SEQ        0
-#define MODULE_AUTOACK_TOTAL_STRUCT     1
-#define MODULE_AUTOACK_PREV_STATE       0
-#define MODULE_AUTOACK_NEXT_STATE       0
-#define MODULE_AUTOACK_IRQ_STATUS     DEFAULT_IRQ_STATE
-#define MODULE_AUTOACK_PROCESS_STATUS   0
-#define MODULE_AUTOACK_MASTER_SHARED_MEM 0
-
-#define MODULE_ERR_LOGHANDLE_ID                MODULE_ERR_LOGHANDLE
-#define MODULE_ERR_LOGHANDLE_FUNCTION_POINTER     &module_err_log_u32
-#define MODULE_ERR_LOGHANDLE_TOTAL_SEQ        0
-#define MODULE_ERR_LOGHANDLE_TOTAL_STRUCT     1
-#define MODULE_ERR_LOGHANDLE_PREV_STATE       0
-#define MODULE_ERR_LOGHANDLE_NEXT_STATE       0
-#define MODULE_ERR_LOGHANDLE_IRQ_STATUS     DEFAULT_IRQ_STATE
-#define MODULE_ERR_LOGHANDLE_PROCESS_STATUS   0
-#define MODULE_ERR_LOGHANDLE_MASTER_SHARED_MEM 0
-
-#define MODULE_MEERKAT_ID                   MODULE_MEERKAT_SAFETY_CORE
-#define MODULE_MEERKAT_FUNCTION_POINTER     &MeerkatInterface_RunStateMachine
-#define MODULE_MEERKAT_TOTAL_SEQ     0
-#define MODULE_MEERKAT_TOTAL_STRUCT     1
-#define MODULE_MEERKAT_PREV_STATE       0
-#define MODULE_MEERKAT_NEXT_STATE           0
-#define MODULE_MEERKAT_IRQ_STATUS     DEFAULT_IRQ_STATE
-#define MODULE_MEERKAT_PROCESS_STATUS       0
-#define MODULE_MEERKAT_MASTER_SHARED_MEM 0
-
-#define MODULE_USART1_ID                   MODULE_USART1
-#define MODULE_USART1_FUNCTION_POINTER     &moduleUsart1_u32
-#define MODULE_USART1_TOTAL_SEQ        8
-#define MODULE_USART1_TOTAL_STRUCT     1
-#define MODULE_USART1_PREV_STATE       0
-#define MODULE_USART1_NEXT_STATE           0
-#define MODULE_USART1_IRQ_STATUS     DEFAULT_IRQ_STATE
-#define MODULE_USART1_PROCESS_STATUS       0
-#define MODULE_USART1_MASTER_SHARED_MEM 0
 
 #define MODULE_FLASH_ID                    MODULE_FLASH
 #define MODULE_FLASH_FUNCTION_POINTER      &moduleFlash_u32
@@ -187,15 +77,66 @@ extern __root const uint32_t App_CRC @ "app_crc32_rom";// = 0x00000000; // This 
 #define MODULE_FLASH_PROCESS_STATUS       0
 #define MODULE_FLASH_MASTER_SHARED_MEM 0
 
-#define MODULE_DEBUG_MODE_CMD_ID                   MODULE_DEBUG_MODE_CMD
-#define MODULE_DEBUG_MODE_CMD_FUNCTION_POINTER     &moduleDebugMCmd_u32
-#define MODULE_DEBUG_MODE_CMD_TOTAL_SEQ        0
-#define MODULE_DEBUG_MODE_CMD_TOTAL_STRUCT     1
-#define MODULE_DEBUG_MODE_CMD_PREV_STATE       0
-#define MODULE_DEBUG_MODE_CMD_NEXT_STATE       0
-#define MODULE_DEBUG_MODE_CMD_IRQ_STATUS     DEFAULT_IRQ_STATE
-#define MODULE_DEBUG_MODE_CMD_PROCESS_STATUS   0
-#define MODULE_DEBUG_MODE_CMD_MASTER_SHARED_MEM 0
+#define MODULE_USART2_ID                   MODULE_USART2
+#define MODULE_USART2_FUNCTION_POINTER     &moduleUsart2
+#define MODULE_USART2_TOTAL_SEQ        3
+#define MODULE_USART2_TOTAL_STRUCT     1
+#define MODULE_USART2_PREV_STATE       0
+#define MODULE_USART2_NEXT_STATE           0
+#define MODULE_USART2_IRQ_STATUS     DEFAULT_IRQ_STATE
+#define MODULE_USART2_PROCESS_STATUS       0
+#define MODULE_USART2_MASTER_SHARED_MEM 0
+
+#define MODULE_I2C_ID                   MODULE_I2C
+#define MODULE_I2C_FUNCTION_POINTER     &moduleI2c_u32
+#define MODULE_I2C_TOTAL_SEQ        2
+#define MODULE_I2C_TOTAL_STRUCT     1
+#define MODULE_I2C_PREV_STATE       0
+#define MODULE_I2C_NEXT_STATE       0
+#define MODULE_I2C_IRQ_STATUS     DEFAULT_IRQ_STATE
+#define MODULE_I2C_PROCESS_STATUS   0
+#define MODULE_I2C_MASTER_SHARED_MEM 0
+
+#define MODULE_MC_STATEMACHINE_ID                   MODULE_MC_STATEMACHINE 
+#define MODULE_MC_STATEMACHINE_FUNCTION_POINTER     &module_Mc_StateMachine_u32 
+#define MODULE_MC_STATEMACHINE_TOTAL_SEQ        0
+#define MODULE_MC_STATEMACHINE_TOTAL_STRUCT     1
+#define MODULE_MC_STATEMACHINE_PREV_STATE       0
+#define MODULE_MC_STATEMACHINE_NEXT_STATE       0
+#define MODULE_MC_STATEMACHINE_IRQ_STATUS     DEFAULT_IRQ_STATE
+#define MODULE_MC_STATEMACHINE_PROCESS_STATUS   0
+#define MODULE_MC_STATEMACHINE_MASTER_SHARED_MEM 0
+
+#define MODULE_EEP_CMD_ID                   MODULE_EEP_CMD
+#define MODULE_EEP_CMD_FUNCTION_POINTER     &moduleEEP
+#define MODULE_EEP_CMD_TOTAL_SEQ        0
+#define MODULE_EEP_CMD_TOTAL_STRUCT     1
+#define MODULE_EEP_CMD_PREV_STATE       0
+#define MODULE_EEP_CMD_NEXT_STATE       0
+#define MODULE_EEP_CMD_IRQ_STATUS     DEFAULT_IRQ_STATE
+#define MODULE_EEP_CMD_PROCESS_STATUS   0
+#define MODULE_EEP_CMD_MASTER_SHARED_MEM 0
+
+#define MODULE_DYNAMIC_ID                   MODULE_DYNAMIC
+#define MODULE_DYNAMIC_FUNCTION_POINTER     &module_dynamic 
+#define MODULE_DYNAMIC_TOTAL_SEQ        0
+#define MODULE_DYNAMIC_TOTAL_STRUCT     1
+#define MODULE_DYNAMIC_PREV_STATE       0
+#define MODULE_DYNAMIC_NEXT_STATE       0
+#define MODULE_DYNAMIC_IRQ_STATUS     DEFAULT_IRQ_STATE
+#define MODULE_DYNAMIC_PROCESS_STATUS   0
+#define MODULE_DYNAMIC_MASTER_SHARED_MEM 0
+
+
+#define MODULE_ERR_LOGHANDLE_ID                MODULE_ERR_LOGHANDLE
+#define MODULE_ERR_LOGHANDLE_FUNCTION_POINTER     &module_err_log_u32
+#define MODULE_ERR_LOGHANDLE_TOTAL_SEQ        0
+#define MODULE_ERR_LOGHANDLE_TOTAL_STRUCT     1
+#define MODULE_ERR_LOGHANDLE_PREV_STATE       0
+#define MODULE_ERR_LOGHANDLE_NEXT_STATE       0
+#define MODULE_ERR_LOGHANDLE_IRQ_STATUS     DEFAULT_IRQ_STATE
+#define MODULE_ERR_LOGHANDLE_PROCESS_STATUS   0
+#define MODULE_ERR_LOGHANDLE_MASTER_SHARED_MEM 0
 
 #define MODULE_ECM_ICL_ID                   MODULE_ECM_ICL                     
 #define MODULE_ECM_ICL_FUNCTION_POINTER     &p_moduleECM_ICL_u32              
@@ -207,17 +148,6 @@ extern __root const uint32_t App_CRC @ "app_crc32_rom";// = 0x00000000; // This 
 #define MODULE_ECM_ICL_PROCESS_STATUS   	0x00                               
 #define MODULE_ECM_ICL_MASTER_SHARED_MEM 	0                          
 
-#define MODULE_EEP_CMD_ID                   MODULE_EEP_CMD
-#define MODULE_EEP_CMD_FUNCTION_POINTER     &moduleEEPCmd_u32
-#define MODULE_EEP_CMD_TOTAL_SEQ        0
-#define MODULE_EEP_CMD_TOTAL_STRUCT     1
-#define MODULE_EEP_CMD_PREV_STATE       0
-#define MODULE_EEP_CMD_NEXT_STATE       0
-#define MODULE_EEP_CMD_IRQ_STATUS     DEFAULT_IRQ_STATE
-#define MODULE_EEP_CMD_PROCESS_STATUS   0
-#define MODULE_EEP_CMD_MASTER_SHARED_MEM 0
-
-
 #define MODULE_VOLTAGE_DOUBLER_ID                   MODULE_VOLTAGE_DOUBLER
 #define MODULE_VOLTAGE_DOUBLER_FUNCTION_POINTER     &p_module_voltage_doubler_u32
 #define MODULE_VOLTAGE_DOUBLER_TOTAL_SEQ        	0
@@ -227,6 +157,49 @@ extern __root const uint32_t App_CRC @ "app_crc32_rom";// = 0x00000000; // This 
 #define MODULE_VOLTAGE_DOUBLER_IRQ_STATUS     		DEFAULT_IRQ_STATE
 #define MODULE_VOLTAGE_DOUBLER_PROCESS_STATUS   	0x00
 #define MODULE_VOLTAGE_DOUBLER_MASTER_SHARED_MEM	0
+
+
+
+#define MODULE_MODBUS_ID                MODULE_MODBUS
+#define MODULE_MODBUS_FUNCTION_POINTER  &moduleModbus
+#define MODULE_MODBUS_TOTAL_SEQ         0
+#define MODULE_MODBUS_TOTAL_STRUCT      1
+#define MODULE_MODBUS_PREV_STATE        0
+#define MODULE_MODBUS_NEXT_STATE        0
+#define MODULE_MODBUS_IRQ_STATUS        DEFAULT_IRQ_STATE
+#define MODULE_MODBUS_PROCESS_STATUS    0
+#define MODULE_MODBUS_MASTER_SHARED_MEM 0
+
+#define MODULE_TEST_ID                 MODULE_TEST
+#define MODULE_TEST_FUNCTION_POINTER   &moduleTest_u32
+#define MODULE_TEST_TOTAL_SEQ          0
+#define MODULE_TEST_TOTAL_STRUCT       1
+#define MODULE_TEST_PREV_STATE         0
+#define MODULE_TEST_NEXT_STATE         0
+#define MODULE_TEST_IRQ_STATUS         DEFAULT_IRQ_STATE
+#define MODULE_TEST_PROCESS_STATUS     0
+#define MODULE_TEST_MASTER_SHARED_MEM  0
+
+#define MODULE_RTC_ID                   MODULE_RTC
+#define MODULE_RTC_FUNCTION_POINTER     &p_moduleRTC_u32
+#define MODULE_RTC_TOTAL_SEQ            0
+#define MODULE_RTC_TOTAL_STRUCT         0
+#define MODULE_RTC_PREV_STATE           0
+#define MODULE_RTC_NEXT_STATE           0
+#define MODULE_RTC_IRQ_STATUS           DEFAULT_IRQ_STATE
+#define MODULE_RTC_PROCESS_STATUS       0
+#define MODULE_RTC_MASTER_SHARED_MEM    0
+
+#define MODULE_MEERKAT_ID                MODULE_MEERKAT_SAFETY_CORE
+#define MODULE_MEERKAT_FUNCTION_POINTER  &MeerkatInterface_RunStateMachine
+#define MODULE_MEERKAT_TOTAL_SEQ         0
+#define MODULE_MEERKAT_TOTAL_STRUCT      0
+#define MODULE_MEERKAT_PREV_STATE        0
+#define MODULE_MEERKAT_NEXT_STATE        0
+#define MODULE_MEERKAT_IRQ_STATUS        DEFAULT_IRQ_STATE
+#define MODULE_MEERKAT_PROCESS_STATUS    0
+#define MODULE_MEERKAT_MASTER_SHARED_MEM 0
+
 
 // Process Status
 #define PROCESS_STATUS_RUNNING 0x00
@@ -248,7 +221,6 @@ extern __root const uint32_t App_CRC @ "app_crc32_rom";// = 0x00000000; // This 
 #define PROCESS_IRQ_ID    0
 #define NO_IRQS           0
 #define DEFAULT_IRQ_STATE 200
-#define NUM_OF_625_MS_INCREMENTS 6
 
 // Default States
 #define DEFAULT_PREV_STATE 0
@@ -275,36 +247,25 @@ extern __root const uint32_t App_CRC @ "app_crc32_rom";// = 0x00000000; // This 
   ********************************************************************************************************************************
   */
 /** pam procedure #3 of Module insertion  :  add up total number of module below **/
-#define TOTAL_NUM_OF_PROCESSES 17        // Pam: Let kernal assign total number of process to execute
+#define TOTAL_NUM_OF_PROCESSES 14       // Pam: Let kernal assign total number of process to execute
 /** pam procedure #3of Module insertion  :  add up total number of module below end  **/
 
 /** pam procedure #2 of Module insertion  :  add/define the module ID **/
-enum Processes {
-//    DRV_USART1 = MIN_DRV_ID,
-//    DRV_GPIO,
-//    DRV_ADC1,
- //   MODULE_GPIO 
-    MODULE_USART1= MIN_MODULE_ID,
-    MODULE_FLASH,
-    MODULE_DEBUG_MODE_CMD,
+enum Processes { 
+    MODULE_FLASH= MIN_MODULE_ID,
+    MODULE_USART2,
     MODULE_I2C,
     MODULE_MC_STATEMACHINE,
     MODULE_APP,                         //Pam: kernal will auto asign a module/process/task ID for this module
-    MODULE_SHORT_CMD,
-    MODULE_EEP_CMD_ID,
-    MODULE_REPLY_CMD,
-    MODULE_FLASH_UPDATE_CMD,
-    MODULE_FLASH_REGISTER_CMD,
-    MODULE_AUTOACK,
+    MODULE_EEP_CMD,
+    MODULE_DYNAMIC,
     MODULE_ERR_LOGHANDLE,
-    MODULE_ECM_ICL,
-	MODULE_VOLTAGE_DOUBLER,
-        
-        MODULE_MEERKAT_SAFETY_CORE,
-        MODULE_RTC,
- //   MODULE_ADC1,
- //   MODULE_ANALOG_0_10V,
- //   MODULE_MOTOR_COM,
+    MODULE_MODBUS,
+     MODULE_ECM_ICL,
+     MODULE_VOLTAGE_DOUBLER,
+    MODULE_TEST,
+     MODULE_MEERKAT_SAFETY_CORE,
+    MODULE_RTC,
     END_OF_PROCESS_ID = MAX_PROCESS_ID,
 };
 /** pam procedure #2 of Module insertion  :  add/define the module ID  end **/
@@ -319,22 +280,17 @@ enum Processes {
 /** pam procedure #4 #5 of Module insertion  :  add up total number of structured-memory and assign with an ID below **/
 // Cannot use Enum, because need TOTAL_NUM_OF_STRUCT_MEM_INSTANCES pre-compiler for compiler directives
 // - REVIEW: TOTAL_NUM_OF_STRUCT_MEM_INSTANCES only used pre-comile for Array Zero Detect and Size double check
-#define STRUCT_MEM_ID_MODULE_USART1_BUFFER 0
-#define STRUCT_MEM_ID_MODULE_FLASH_BUFFER 1
-#define STRUCT_MEM_ID_MODULE_I2C_BUFFER   2
+#define STRUCT_MEM_ID_MODULE_FLASH_BUFFER      0
+#define STRUCT_MEM_ID_MODULE_USART2_BUFFER     1
+#define STRUCT_MEM_ID_MODULE_I2C_BUFFER        2
 #define STRUCT_MEM_ID_MODULE_MC_STATEMACHINE_BUFFER 3
-#define STRUCT_MEM_ID_MODULE_APP_BUFFER   4                       //Pam: Add the structured-memory instance ID
-#define STRUCT_MEM_ID_MODULE_SHORT_CMD    5
-#define STRUCT_MEM_ID_MODULE_EEP_CMD      6
-#define STRUCT_MEM_ID_MODULE_REPLY_CMD    7
-#define STRUCT_MEM_ID_MODULE_FLASH_UPDATE_CMD    8
-#define STRUCT_MEM_ID_MODULE_FLASH_REGISTER_CMD  9
-#define STRUCT_MEM_ID_MODULE_AUTOACK      10
-#define STRUCT_MEM_ID_MODULE_ERR_LOGHANDLE 11
-#define STRUCT_MEM_ID_MODULE_ECM_ICL_BUFFER   12
-#define STRUCT_MEM_ID_MODULE_VOLTAGE_DOUBLER_BUFFER   13
-#define STRUCT_MEM_ID_MODULE_RTC_BUFFER 14
-#define TOTAL_NUM_OF_STRUCT_MEM_INSTANCES  15                     // should always be the last member of this enum
+#define STRUCT_MEM_ID_MODULE_APP_BUFFER        4  //Pam: Add the structured-memory instance ID
+#define STRUCT_MEM_ID_MODULE_EEP_CMD           5
+#define STRUCT_MEM_ID_MODULE_DYNAMIC           6
+#define STRUCT_MEM_ID_MODULE_ERR_LOGHANDLE     7
+#define STRUCT_MEM_ID_MODULE_MODBUS            8
+#define STRUCT_MEM_ID_MODULE_TEST              9
+#define TOTAL_NUM_OF_STRUCT_MEM_INSTANCES      10  // should always be the last member of this enum
 
 // Ensure that we do not declare arrays of size 0, if Struct Memory is not used in a project
 #if TOTAL_NUM_OF_STRUCT_MEM_INSTANCES == 0
@@ -344,8 +300,8 @@ enum Processes {
 #endif
 
 // Generate a warning if TOTAL_NUM_OF_STRUCT_MEM_INSTANCES != Amount declared in the Module Setup Tables
-#define STRUCT_MEM_SETUP_TABLE_COUNT (MODULE_USART1_TOTAL_STRUCT+ MODULE_FLASH_TOTAL_STRUCT + MODULE_MC_STATEMACHINE_TOTAL_STRUCT + MODULE_SHORT_CMD_TOTAL_STRUCT + MODULE_REPLY_CMD_TOTAL_STRUCT + MODULE_APP_TOTAL_STRUCT + MODULE_AUTOACK_TOTAL_STRUCT + \
-                                      MODULE_FLASH_UPDATE_CMD_TOTAL_STRUCT+MODULE_RTC_TOTAL_STRUCT+MODULE_MEERKAT_TOTAL_STRUCT +MODULE_I2C_TOTAL_STRUCT+ MODULE_EEP_CMD_TOTAL_STRUCT+MODULE_FLASH_REGISTER_CMD_TOTAL_STRUCT + MODULE_ERR_LOGHANDLE_TOTAL_STRUCT + MODULE_ECM_ICL_TOTAL_STRUCT + MODULE_VOLTAGE_DOUBLER_TOTAL_STRUCT ) //Pam: put all the assigned structured-memory ID for double check-only
+#define STRUCT_MEM_SETUP_TABLE_COUNT (MODULE_APP_TOTAL_STRUCT + MODULE_MC_STATEMACHINE_TOTAL_STRUCT + MODULE_EEP_CMD_TOTAL_STRUCT + MODULE_DYNAMIC_TOTAL_STRUCT + MODULE_I2C_TOTAL_STRUCT + \
+                                  MODULE_ERR_LOGHANDLE_TOTAL_STRUCT + MODULE_USART2_TOTAL_STRUCT + MODULE_FLASH_TOTAL_STRUCT + MODULE_MODBUS_TOTAL_STRUCT + MODULE_TEST_TOTAL_STRUCT)
                                         
 #if STRUCT_MEM_SETUP_TABLE_COUNT != TOTAL_NUM_OF_STRUCT_MEM_INSTANCES
 #warning TOTAL_NUM_OF_STRUCT_MEM_INSTANCES does not equal amount derived from tables (STRUCT_MEM_SETUP_TABLE_COUNT)!
@@ -362,17 +318,12 @@ enum Processes {
 /** pam procedure #6 #7 of Module insertion  :  add up total number of Sequential Memory and assign with an ID below below **/
 // Cannot use Enum, because need TOTAL_NUM_OF_SEQ_MEM_INSTANCES pre-compiler for compiler directives
 // - REVIEW: TOTAL_NUM_OF_SEQ_MEM_INSTANCES only used pre-comile for Array Zero Detect and Size double check
-#define SEQ_MEM_ID_MODULE_USART1_INTERNAL       0
-#define SEQ_MEM_ID_MODULE_USART1_RXG1_2         1
-#define SEQ_MEM_ID_MODULE_USART1_RXG3           2
-#define SEQ_MEM_ID_MODULE_USART1_RXG4L          3
-#define SEQ_MEM_ID_MODULE_USART1_RXG4U          4
-#define SEQ_MEM_ID_MODULE_USART1_RXG5           5
-#define SEQ_MEM_ID_MODULE_USART2_RXG7U          6
-#define SEQ_MEM_ID_MODULE_USART1_TX             7
-#define SEQ_MEM_ID_MODULE_I2C_TX                8
-#define SEQ_MEM_ID_MODULE_I2C_RX                9
-#define TOTAL_NUM_OF_SEQ_MEM_INSTANCES 10 // should always be the last member of this enum
+#define SEQ_MEM_ID_MODULE_USART2_INTERNAL       0
+#define SEQ_MEM_ID_MODULE_USART2_MODBUS         1
+#define SEQ_MEM_ID_MODULE_USART2_TX             2
+#define SEQ_MEM_ID_MODULE_I2C_TX                3
+#define SEQ_MEM_ID_MODULE_I2C_RX                4
+#define TOTAL_NUM_OF_SEQ_MEM_INSTANCES 5 // should always be the last member of this enum
 //};
       
 // Ensure that we do not declare arrays of size 0, if Struct Memory is not used in a project
@@ -382,10 +333,14 @@ enum Processes {
 #define SEQ_MEM_ARRAY_SIZE TOTAL_NUM_OF_SEQ_MEM_INSTANCES
 #endif
 // Generate a warning if TOTAL_NUM_OF_SEQ_MEM_INSTANCES != Amount declared in the Module Setup Tables
-#define SEQ_MEM_SETUP_TABLE_COUNT (MODULE_GPIO_TOTAL_SEQ + MODULE_USART1_TOTAL_SEQ + MODULE_FLASH_REGISTER_CMD_TOTAL_SEQ ) // Used as a double check-only
+#define SEQ_MEM_SETUP_TABLE_COUNT (MODULE_MC_STATEMACHINE_TOTAL_SEQ + MODULE_EEP_CMD_TOTAL_SEQ + MODULE_DYNAMIC_TOTAL_SEQ + MODULE_I2C_TOTAL_SEQ + \
+                                  MODULE_ERR_LOGHANDLE_TOTAL_SEQ + MODULE_USART2_TOTAL_SEQ + MODULE_FLASH_TOTAL_SEQ + MODULE_MODBUS_TOTAL_SEQ + \
+                                  MODULE_TEST_TOTAL_SEQ + MODULE_MEERKAT_SAFETY_CORE_TOTAL_SEQ  + MODULE_RTC_TOTAL_SEQ)
 #if SEQ_MEM_SETUP_TABLE_COUNT != TOTAL_NUM_OF_SEQ_MEM_INSTANCES
 #warning TOTAL_NUM_OF_SEQ_MEM_INSTANCES does not equal amount derived from tables (SEQ_MEM_SETUP_TABLE_COUNT)!
 #endif
+
+
 /** pam procedure #6 #7 of Module insertion  :  add up total number of Sequential Memory and assign with an ID below end **/
 /**
   ********************************************************************************************************************************
@@ -403,9 +358,6 @@ uint8_t p_moduleApp_u32(uint8_t moduleId_u8, uint8_t prevState_u8, uint8_t nextS
                         uint8_t irqId_u8);
 /** pam procedure #8 of Module insertion  :  declear a function prototype for the module body end **/
 
-uint8_t moduleDebugMCmd_u32(uint8_t module_id_u8, uint8_t prev_state_u8, uint8_t next_State_u8,
-                        uint8_t irq_id_u8); 
-
 /**
   ********************************************************************************************************************************
   * @brief   
@@ -420,189 +372,6 @@ uint8_t moduleDebugMCmd_u32(uint8_t module_id_u8, uint8_t prev_state_u8, uint8_t
 uint8_t module_Mc_StateMachine_u32(uint8_t drv_id_u8, uint8_t prevState_u8, uint8_t nextState_u8,
                            uint8_t irqId_u8);
 
-/**
-  ********************************************************************************************************************************
-  * @brief   read minute counter
-  * @details 
-  * @param   
-  ********************************************************************************************************************************
-  */
-uint64_t getMinCount(void);
-
-
-/**
-  ********************************************************************************************************************************
-  * @brief   
-  * @details 
-  * @param   drv_id_u8
-  * @param   prevState_u8
-  * @param   nextState_u8
-  * @param   irqId_u8
-  * @return  
-  ********************************************************************************************************************************
-  */
-uint8_t moduleI2c_u32(uint8_t drv_id_u8, uint8_t prevState_u8, uint8_t nextState_u8,
-                           uint8_t irqId_u8);
-
-
-/**
-  ********************************************************************************************************************************
-  * @brief   
-  * @details 
-  * @param   drv_id_u8
-  * @param   prevState_u8
-  * @param   nextState_u8
-  * @param   irqId_u8
-  * @return  
-  ********************************************************************************************************************************
-  */
-uint8_t moduleEEPCmd_u32(uint8_t drv_id_u8, uint8_t prevState_u8, uint8_t nextState_u8,
-                           uint8_t irqId_u8);
-
-
-
-/**
-  ********************************************************************************************************************************
-  * @brief   
-  * @details 
-  * @param   driver_identifier_u8
-  * @param   previousState_u8
-  * @param   nextState_u8
-  * @param   interruptIdentifier_u8
-  * @return  
-  ********************************************************************************************************************************
-  */
-uint8_t MeerkatInterface_RunStateMachine(uint8_t driver_identifier_u8, uint8_t previousState_u8, uint8_t nextState_u8,
-                                 uint8_t interruptIdentifier_u8);
-
-
-
-/**
-  ********************************************************************************************************************************
-  * @brief   
-  * @details 
-  * @param   drv_id_u8
-  * @param   prevState_u8
-  * @param   nextState_u8
-  * @param   irqId_u8
-  * @return  
-  ********************************************************************************************************************************
-  */
-uint8_t moduleShortCmd_u32(uint8_t drv_id_u8, uint8_t prevState_u8, uint8_t nextState_u8,
-                           uint8_t irqId_u8);
-
-/**
-  ********************************************************************************************************************************
-  * @brief   
-  * @details 
-  * @param   drv_id_u8
-  * @param   prevState_u8
-  * @param   nextState_u8
-  * @param   irqId_u8
-  * @return  
-  ********************************************************************************************************************************
-  */
-uint8_t moduleAutoAck_u32(uint8_t drv_id_u8, uint8_t prevState_u8, uint8_t nextState_u8,
-                           uint8_t irqId_u8);
-
-/**
-  ********************************************************************************************************************************
-  * @brief   
-  * @details 
-  * @param   drv_id_u8
-  * @param   prevState_u8
-  * @param   nextState_u8
-  * @param   irqId_u8
-  * @return  
-  ********************************************************************************************************************************
-  */
-uint8_t module_err_log_u32(uint8_t drv_id_u8, uint8_t prevState_u8, uint8_t nextState_u8,
-                           uint8_t irqId_u8);
-
-/**
-  ********************************************************************************************************************************
-  * @brief   
-  * @details 
-  * @param   drv_id_u8
-  * @param   prevState_u8
-  * @param   nextState_u8
-  * @param   irqId_u8
-  * @return  
-  ********************************************************************************************************************************
-  */
-uint8_t moduleReplyCmd_u32(uint8_t drv_id_u8, uint8_t prevState_u8, uint8_t nextState_u8,
-                           uint8_t irqId_u8);
-
-/**
-  ********************************************************************************************************************************
-  * @brief   
-  * @details 
-  * @param   drv_id_u8
-  * @param   prevState_u8
-  * @param   nextState_u8
-  * @param   irqId_u8
-  * @return  
-  ********************************************************************************************************************************
-  */
-uint8_t moduleFlashUpdateCmd_u32(uint8_t drv_id_u8, uint8_t prevState_u8, uint8_t nextState_u8,
-                           uint8_t irqId_u8);
-
-
-/**
-  ********************************************************************************************************************************
-  * @brief   
-  * @details 
-  * @param   drv_id_u8
-  * @param   prevState_u8
-  * @param   nextState_u8
-  * @param   irqId_u8
-  * @return  
-  ********************************************************************************************************************************
-  */
-uint8_t moduleFlashRegisterCmd_u32(uint8_t module_id_u8, uint8_t prev_state_u8, uint8_t next_State_u8, 
-                            uint8_t irq_id_u8); 
-
-/**
-  ********************************************************************************************************************************
-  * @brief   
-  * @details 
-  * @param   drv_id_u8
-  * @param   prevState_u8
-  * @param   nextState_u8
-  * @param   irqId_u8
-  * @return  
-  ********************************************************************************************************************************
-  */
-uint8_t moduleUsart1_u32(uint8_t drv_id_u8, uint8_t prevState_u8, uint8_t nextState_u8,
-                           uint8_t irqId_u8);
-
-/**
-  ********************************************************************************************************************************
-  * @brief   
-  * @details 
-  * @param   drv_id_u8
-  * @param   prevState_u8
-  * @param   nextState_u8
-  * @param   irqId_u8
-  * @return  
-  ********************************************************************************************************************************
-  */
-uint8_t moduleFlash_u32(uint8_t drv_id_u8, uint8_t prevState_u8, uint8_t nextState_u8,
-                           uint8_t irqId_u8);
-
-/**
-  ********************************************************************************************************************************
-  * @brief   
-  * @details 
-  * @param   drv_id_u8
-  * @param   prevState_u8
-  * @param   nextState_u8
-  * @param   irqId_u8
-  * @return  
-  ********************************************************************************************************************************
-  */
-uint8_t p_moduleRTC_u32(uint8_t drv_id_u8, uint8_t prevState_u8, uint8_t nextState_u8,
-                                 uint8_t irqId_u8); 
 
 /**
   ********************************************************************************************************************************
@@ -632,8 +401,124 @@ uint8_t p_moduleECM_ICL_u32(uint8_t moduleId_u8, uint8_t prevState_u8, uint8_t n
 uint8_t p_module_voltage_doubler_u32(uint8_t moduleId_u8, uint8_t prevState_u8, uint8_t nextState_u8,
                         uint8_t irqId_u8);
 
+
+
 /**
-**********************************************************************************************************************************
+  ********************************************************************************************************************************
+  * @brief   
+  * @details 
+  * @param   drv_id_u8
+  * @param   prevState_u8
+  * @param   nextState_u8
+  * @param   irqId_u8
+  * @return  
+  ********************************************************************************************************************************
+  */
+uint8_t moduleEEP(uint8_t drv_id_u8, uint8_t prevState_u8, uint8_t nextState_u8,
+                           uint8_t irqId_u8);
+
+
+/**
+  ********************************************************************************************************************************
+  * @brief   
+  * @details 
+  * @param   drv_id_u8
+  * @param   prevState_u8
+  * @param   nextState_u8
+  * @param   irqId_u8
+  * @return  
+  ********************************************************************************************************************************
+  */
+uint8_t module_err_log_u32(uint8_t drv_id_u8, uint8_t prevState_u8, uint8_t nextState_u8,
+                           uint8_t irqId_u8);
+
+/**
+  ********************************************************************************************************************************
+  * @brief   
+  * @details 
+  * @param   drv_id_u8
+  * @param   prevState_u8
+  * @param   nextState_u8
+  * @param   irqId_u8
+  * @return  
+  ********************************************************************************************************************************
+  */
+uint8_t module_dynamic(uint8_t drv_id_u8, uint8_t prevState_u8, uint8_t nextState_u8,
+                           uint8_t irqId_u8);
+
+/**
+  ********************************************************************************************************************************
+  * @brief   
+  * @details 
+  * @param   drv_id_u8
+  * @param   prevState_u8
+  * @param   nextState_u8
+  * @param   irqId_u8
+  * @return  
+  ********************************************************************************************************************************
+  */
+uint8_t moduleUsart2(uint8_t drv_id_u8, uint8_t prevState_u8, uint8_t nextState_u8,
+                           uint8_t irqId_u8);
+
+/**
+  ********************************************************************************************************************************
+  * @brief   
+  * @details 
+  * @param   drv_id_u8
+  * @param   prevState_u8
+  * @param   nextState_u8
+  * @param   irqId_u8
+  * @return  
+  ********************************************************************************************************************************
+  */
+uint8_t moduleFlash_u32(uint8_t drv_id_u8, uint8_t prevState_u8, uint8_t nextState_u8,
+                           uint8_t irqId_u8);
+
+/**
+  ********************************************************************************************************************************
+  * @brief   
+  * @details 
+  * @param   drv_id_u8
+  * @param   prevState_u8
+  * @param   nextState_u8
+  * @param   irqId_u8
+  * @return  
+  ********************************************************************************************************************************
+  */
+uint8_t moduleI2c_u32(uint8_t drv_id_u8, uint8_t prevState_u8, uint8_t nextState_u8,
+                           uint8_t irqId_u8);
+
+/**
+  ********************************************************************************************************************************
+  * @brief   
+  * @details 
+  * @param   drv_id_u8
+  * @param   prevState_u8
+  * @param   nextState_u8
+  * @param   irqId_u8
+  * @return  
+  ********************************************************************************************************************************
+  */
+uint8_t p_moduleRTC_u32(uint8_t drv_id_u8, uint8_t prevState_u8, uint8_t nextState_u8,
+                                 uint8_t irqId_u8); 
+
+/**
+  ********************************************************************************************************************************
+  * @brief   
+  * @details 
+  * @param   drv_id_u8
+  * @param   prevState_u8
+  * @param   nextState_u8
+  * @param   irqId_u8
+  * @return  
+  ********************************************************************************************************************************
+  */
+uint8_t MeerkatInterface_RunStateMachine(uint8_t drv_id_u8, uint8_t prevState_u8, uint8_t nextState_u8,
+                                 uint8_t irqId_u8); // TODO: These are 'functions' and should not follow 'pointer' naming conventions
+
+
+/**
+  ********************************************************************************************************************************
   * @brief   
   * @details 
   * @param   drv_id_u8
@@ -659,6 +544,32 @@ uint8_t p_moduleMeerkatSafetyCore_u32(uint8_t drv_id_u8, uint8_t prevState_u8, u
   */
 uint8_t moduleADC1_u32(uint8_t drv_id_u8, uint8_t prevState_u8, uint8_t nextState_u8,
                                  uint8_t irqId_u8); // TODO: These are 'functions' and should not follow 'pointer' naming conventions
+
+/**
+  ********************************************************************************************************************************
+  * @brief   
+  * @details 
+  * @param   drv_id_u8
+  * @param   prevState_u8
+  * @param   nextState_u8
+  * @param   irqId_u8
+  * @return  
+  ********************************************************************************************************************************
+  */
+
+uint8_t moduleModbus(uint8_t drv_identifier_u8, uint8_t previous_state_u8, uint8_t next_state_u8,
+                               uint8_t irq_identifier_u8);
+
+
+/**
+********************************************************************************************************************************
+* @brief   State machine for Test Module
+* @details
+* @retval  return_state_u8
+********************************************************************************************************************************
+*/
+uint8_t moduleTest_u32(uint8_t drv_identifier_u8, uint8_t previous_state_u8, uint8_t next_state_u8,
+                            uint8_t irq_identifier_u8);
 
 /**
   ********************************************************************************************************************************
@@ -820,16 +731,24 @@ void HAL_SYSTICK_Callback(void);
   * @param   timeout_u8
   ********************************************************************************************************************************
   */
-// void Watchdog_Initialize(uint8_t timeout_u8);
+ void Watchdog_Initialize(uint8_t timeout_u8);
 /**
   ********************************************************************************************************************************
-  * @brief   Initializes and starts the watchdog.
-  * @details (IWDG_PR, IWDG_RLR and IWDG_WINR registers)
-  * @param   timeout_u8
+  * @brief   read system tick.
+  * @details 
+  * @param   
   ********************************************************************************************************************************
   */
 uint64_t getSysCount(void);
 
+/**
+  ********************************************************************************************************************************
+  * @brief   read minute counter
+  * @details 
+  * @param   
+  ********************************************************************************************************************************
+  */
+uint64_t getMinCount(void);
 
 /**
   ********************************************************************************************************************************
@@ -857,6 +776,23 @@ void setupSoftwareIRQ(uint8_t SENDER_MODULE_ID, uint8_t RECEIVER_MODULE_ID, uint
   ********************************************************************************************************************************
   */
 uint16_t Calculate_CRC(uint16_t BufSize, unsigned char* aDataBuf);
+
+/**
+  ********************************************************************************************************************************
+  * @brief   CRC calculation
+  * @details 
+  * @param  
+  ********************************************************************************************************************************
+  */
+uint32_t Calculate_CRC32(uint16_t BufSize, unsigned char* aDataBuf);
+/**
+  ********************************************************************************************************************************
+  * @brief   Danamic memory handling
+  * @details 
+  * @param  
+  ********************************************************************************************************************************
+  */
+uint8_t reallocErrorINC(uint8_t addCount);
 
 #ifdef __cplusplus
 }

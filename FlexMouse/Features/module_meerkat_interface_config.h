@@ -21,17 +21,29 @@ extern "C" {
 #endif /* __cplusplus */
 
 #include <stdint.h>
-    
+ 
+#define MEERKAT_TESTING
+#define MEERKAT_LOCKED_ROTOR_TUNING
+//#define MEERKAT_OVERLOAD_TUNING  
     
 // Debugging Options
 // - during production, all values should be 0.
+
 #define DISABLE_MEERKAT_SAFETY_MODULE 0 // Debugging Option: totally disable, so flexmouse can run stand-alone
 #define DISABLE_MEERKAT_SAFETY_MODULE_INIT 0
 #define DISABLE_MEERKAT_AUTO_START 0
 #define DISABLE_MEERKAT_AUTO_RESTART 0
 #define DISABLE_MEERKAT_REBOOT 0 // Debugging Option: don't allow rebooting the processor so you have more time to view fail state
+#define MEERKAT_ENABLE_FAULT_INJECTION_PROTOTOCOL 0 // Allow reception of incoming commands to inject UL Faults
+/*
+  
+#define DISABLE_MEERKAT_SAFETY_MODULE 1 // Debugging Option: totally disable, so flexmouse can run stand-alone
+#define DISABLE_MEERKAT_SAFETY_MODULE_INIT 1
+#define DISABLE_MEERKAT_AUTO_START 1
+#define DISABLE_MEERKAT_AUTO_RESTART 1
+#define DISABLE_MEERKAT_REBOOT 1 // Debugging Option: don't allow rebooting the processor so you have more time to view fail state
 #define MEERKAT_ENABLE_FAULT_INJECTION_PROTOTOCOL 1 // Allow reception of incoming commands to inject UL Faults
-
+*/
 
 // Constant Parameters
 // - Clock Check Buffer
@@ -73,8 +85,8 @@ extern uint32_t meerkatCore_FaultCode_u32; // Active Safety Error Code
 extern uint32_t meerkatCore_ActiveTest_u32; // Currently Running Test (to ensure that ISRs do not inject data mid-test)
 extern uint32_t meerkatCore_PassedTests_u32; // Passed Test List
 extern uint16_t meerkatCore_RiskAddrRetryCount_u16;
-extern uint32_t meerkatCore_TestInterface_u32; //unused
-
+extern int32_t meerkatCore_TestValue1_i32; //unused
+extern int32_t meerkatCore_TestValue2_i32; //unused
 // Function Imports (from symbols file)
 void MeerkatCore_CheckWatchdogResetFlag(void);
 void MeerkatCore_AddClockSample(uint32_t lsi_tick_count_u32);

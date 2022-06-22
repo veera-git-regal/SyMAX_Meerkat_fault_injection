@@ -50,7 +50,7 @@
 #include "sto_pll_speed_pos_fdbk.h"
 #include "mc_math.h"
 
-Module_Debug debug_symax;
+
 
 /** @addtogroup MCSDK
   * @{
@@ -90,13 +90,9 @@ __weak void STO_PLL_Init( STO_PLL_Handle_t * pHandle )
 {
   int16_t htempk;
   int32_t wAux;
-  
-  // MRM
-  debug_symax.counter_u16 = 0;
-  debug_symax.id_u8 = 0;
+
 
   pHandle->ConsistencyCounter = pHandle->StartUpConsistThreshold;
-  // MRM
   pHandle->EnableDualCheck = true;
 
   wAux = ( int32_t )1;
@@ -462,61 +458,27 @@ __weak bool STO_PLL_CalcAvrgMecSpeedUnit( STO_PLL_Handle_t * pHandle, int16_t * 
   if ( pHandle->IsAlgorithmConverged == false )
   {
     bAux = SPD_IsMecSpeedReliable ( &pHandle->_Super, pMecSpeedUnit );
-	//
-	if(bAux == false)
-	{
-	  //debug_symax.counter_u16++;
-	  if(debug_symax.id_u8 == 0)
-	  	debug_symax.id_u8 = 10;
-	}
   }
   else
   {
     if ( ( pHandle->IsSpeedReliable == false ) || ( bIs_Bemf_Consistent == false ) )
     {
       pHandle->ReliabilityCounter++;
-      if ( pHandle->ReliabilityCounter >= pHandle->Reliability_hysteresys ) {
+      if ( pHandle->ReliabilityCounter >= pHandle->Reliability_hysteresys )
+      {
         pHandle->ReliabilityCounter = 0u;
         pHandle->_Super.bSpeedErrorNumber = pHandle->_Super.bMaximumSpeedErrorsNumber;
         bAux = false;
-		//
-		if(bAux == false) {
-	  		// debug_symax.counter_u16++;
-			if(debug_symax.id_u8 == 0) {
-	  			debug_symax.id_u8 = 20;
-				if(( pHandle->IsSpeedReliable == false ))
-					debug_symax.id_u8 += 100;
-				if(( bIs_Bemf_Consistent == false ))
-					debug_symax.id_u8 += 5;
-				debug_symax.wAvrQuadraticError_s32 = wAvrQuadraticError;
-				debug_symax.wAvrSquareSpeed_s32 = wAvrSquareSpeed;
-				debug_symax.wAvrSpeed_dpp_s32 = wAvrSpeed_dpp;  
-			}
-		}
       }
       else
       {
         bAux = SPD_IsMecSpeedReliable ( &pHandle->_Super, pMecSpeedUnit );
-		//
-		if(bAux == false)
-		{
-	  		//debug_symax.counter_u16++;
-			if(debug_symax.id_u8 == 0)
-	  			debug_symax.id_u8 = 30;
-		}				
       }
     }
     else
     {
       pHandle->ReliabilityCounter = 0u;
       bAux = SPD_IsMecSpeedReliable ( &pHandle->_Super, pMecSpeedUnit );
-	  //
-	  if(bAux == false)
-	  {
-	  		//debug_symax.counter_u16++;
-	  		if(debug_symax.id_u8 == 0)
-			  debug_symax.id_u8 = 40;
-	  }			  
     }
   }
   return ( bAux );

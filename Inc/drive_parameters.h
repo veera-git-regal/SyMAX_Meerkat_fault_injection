@@ -27,6 +27,8 @@
 /************************
  *** Motor Parameters ***
  ************************/
+#define SYMAX_MODEL				"E48PNRA30013"
+#define SYMAX_DRIVE_REVISION	"R00.00.00"
 
 /******** MAIN AND AUXILIARY SPEED/POSITION SENSOR(S) SETTINGS SECTION ********/
 
@@ -136,7 +138,8 @@
 
 #define SPD_DIFFERENTIAL_TERM_ENABLING DISABLE
 #define IQMAX                          21447
-
+//#define IQMAX                          25736
+															 
 /* Default settings */
 #define DEFAULT_CONTROL_MODE           STC_SPEED_MODE /*!< STC_TORQUE_MODE or 
                                                         STC_SPEED_MODE */
@@ -169,27 +172,27 @@
                                                           protection (if supported by 
                                                           power stage) */
 /******************************   START-UP PARAMETERS   **********************/
-//11915-- 4A, 21447 ---7.2A
+
 /* Phase 1 */
 #define PHASE1_DURATION                0 /*milliseconds */
 #define PHASE1_FINAL_SPEED_UNIT         (0*SPEED_UNIT/_RPM) 
-#define PHASE1_FINAL_CURRENT           11915
+#define PHASE1_FINAL_CURRENT           15638
 /* Phase 2 */
 #define PHASE2_DURATION                0 /*milliseconds */
 #define PHASE2_FINAL_SPEED_UNIT         (0*SPEED_UNIT/_RPM)
-#define PHASE2_FINAL_CURRENT           11915
+#define PHASE2_FINAL_CURRENT           15638
 /* Phase 3 */
-#define PHASE3_DURATION                2000 /*milliseconds */
+#define PHASE3_DURATION                3000 /*milliseconds */
 #define PHASE3_FINAL_SPEED_UNIT         (0*SPEED_UNIT/_RPM)
-#define PHASE3_FINAL_CURRENT           11915
+#define PHASE3_FINAL_CURRENT           15638
 /* Phase 4 */
-#define PHASE4_DURATION                5000 /*milliseconds */
+#define PHASE4_DURATION                10000 /*milliseconds */
 #define PHASE4_FINAL_SPEED_UNIT         (1000*SPEED_UNIT/_RPM)
-#define PHASE4_FINAL_CURRENT           11915
+#define PHASE4_FINAL_CURRENT           15638
 /* Phase 5 */
 #define PHASE5_DURATION                0 /* milliseconds */
 #define PHASE5_FINAL_SPEED_UNIT         (1000*SPEED_UNIT/_RPM)
-#define PHASE5_FINAL_CURRENT           11915
+#define PHASE5_FINAL_CURRENT           15638
 
 #define ENABLE_SL_ALGO_FROM_PHASE      1 //2 for "standard" ST startup
 /* Sensor-less rev-up sequence */

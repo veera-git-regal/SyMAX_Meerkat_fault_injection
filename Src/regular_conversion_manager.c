@@ -82,22 +82,6 @@ typedef struct
   void * data;
 } RCM_callback_t;
 
-/* Private defines -----------------------------------------------------------*/
-/**
-  * @brief Number of regular conversion allowed By default.
-  *  
-  * In single drive configuration, it is defined to 4. 2 of them are consumed by 
-  * Bus voltage and temperature reading. This leaves 2 handles available for 
-  * user conversions
-  *
-  * In dual drives configuration, it is defined to 6. 2 of them are consumed by 
-  * Bus voltage and temperature reading for each motor. This leaves 2 handles 
-  * available for user conversion.
-  *
-  * Defined to 4 here. 
-  */
-#define RCM_MAX_CONV  4 
-
 /* Global variables ----------------------------------------------------------*/
 
 RegConv_t * RCM_handle_array [RCM_MAX_CONV];

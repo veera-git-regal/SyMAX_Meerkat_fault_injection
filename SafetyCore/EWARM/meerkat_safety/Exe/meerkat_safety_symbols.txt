@@ -1,0 +1,45 @@
+
+// This is the isymexport steering file.
+// It controls which symbols that are included in the isymexport output file.
+
+/*functions used by the application and implimented in meerkat*/
+//rename MeerkatCore_SupervisorRun as MeerkatCore_SupervisorRun
+show MeerkatCore_SupervisorRun
+//rename MeerkatCore_SupervisorInit as MeerkatCore_SupervisorInit
+show MeerkatCore_StartupInit
+show MeerkatCore_SupervisorInit
+
+//rename MeerkatCore_SupervisorInitSharedRam as MeerkatCore_SupervisorInitSharedRam
+show MeerkatCore_SupervisorInitSharedRam
+//rename MeerkatCore_AddShuntCurrentSample as MeerkatCore_AddShuntCurrentSample
+show MeerkatCore_AddShuntCurrentSample
+//
+show MeerkatCore_AddClockSample
+//rename MeerkatCore_CheckWatchdogResetFlag as MeerkatCore_CheckWatchdogResetFlag
+show MeerkatCore_CheckWatchdogResetFlag
+
+/*variables shared by the application and meerkat*/
+show meerkatCore_LSIClockBuffer_u32
+show meerkatCore_Vref_u16
+show meerkatCore_TemperatureValue1_u16
+show meerkatCore_TemperatureValue2_u16
+show meerkatCore_Vbus_u16
+show meerkatCore_SysTickMs_u32
+show meerkatCore_SpeedRpm_s32
+show meerkatCore_ExpectedBEMF_s32
+show meerkatCore_ObservedBEMF_s32
+show meerkatCore_MeasuredTorque_s32
+show meerkatCore_ShuntCurrentSampleCounter_u32
+show meerkatCore_FaultCode_u32
+show meerkatCore_ActiveTest_u32
+show meerkatCore_PassedTests_u32
+show meerkatCore_RiskAddrRetryCount_u16
+show meerkatCore_TestValue1_i32
+show meerkatCore_TestValue2_i32
+show meerkatCore_MajorVersion_u16
+show meerkatCore_MedianVersion_u16
+show meerkatCore_MinorVersion_u16
+
+/*configuration constants assigned in specific locations in the application
+  ROM and copied to variables in meerkat on startup*/
+show Configure_*

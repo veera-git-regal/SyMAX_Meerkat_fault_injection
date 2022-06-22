@@ -1,0 +1,118 @@
+/*-Specials-*/
+//define symbol __ICFEDIT_intvec_start__ = 0x0800FD50;
+
+/*-Memory Region Addresses-*/
+// ROM Regions
+// - ROM Region occupied by Meerkat Safety Core Configuration Parameters
+define symbol __ICFEDIT_region_SHARED_ROM_start__ = 0x0800D800;   // for placement of safety core configuration variables, must match SHARED_CONFIG_ROM_START
+define symbol __ICFEDIT_region_SHARED_ROM_end__   = 0x0800DFFF;   // flash page is 2kB so this area needs to be a multiple of 2kB in length
+
+// - ROM Region occupied by Meerkat Safety Core
+define symbol __ICFEDIT_region_ROM_start__ = 0x0800E000;   // for safety core firmware 
+define symbol __ICFEDIT_region_ROM_end__   = 0x0800FFFF;   // !review: only needs to be 1FFF including supervisor (min 0x2000 - max 0x4000)
+
+// - ROM Region occupied by Meerkat Safety Core CRC Code
+// define symbol __ICFEDIT_region_ROMCRC_start__   = 0x0800FFFC; // 0xEC to skip interrupt vector block
+// define symbol __ICFEDIT_region_ROMCRC_end__     = 0x0000FFFF; // ~56kB of Code ROM (52kB of bootloadable ROM) 
+
+// - Define/ Export Addresses for use by Post-Build Scripts (to populate Checksum information)
+// -- Safety Firmware ROM Space
+define symbol LNK_ROM_START = __ICFEDIT_region_ROM_start__;
+export symbol LNK_ROM_START;
+define symbol LNK_ROM_END = __ICFEDIT_region_ROM_end__;
+export symbol LNK_ROM_END;
+// -- Shared Configuration ROM Space
+define symbol LNK_CFG_ROM_START = __ICFEDIT_region_SHARED_ROM_start__;
+export symbol LNK_CFG_ROM_START;
+define symbol LNK_CFG_ROM_END = __ICFEDIT_region_SHARED_ROM_end__;
+export symbol LNK_CFG_ROM_END;
+// -- Application Firmware ROM Space (will be overwritten by Application Firmware)
+//define symbol LNK_APP_ROM_START = __ICFEDIT_region_APPLICATION_ROM_start__;
+//export symbol LNK_APP_ROM_START;
+//define symbol LNK_APP_ROM_END = __ICFEDIT_region_APPLICATION_ROM_end__;
+//export symbol LNK_APP_ROM_END;
+
+
+// RAM Regions
+
+// - Total RAM Region occupied by Meerkat Safety Core
+define symbol __ICFEDIT_region_RAM_start__ = 0x20000000;
+define symbol __ICFEDIT_region_RAM_end__   = 0x200006FF;
+
+// - RAM Region Occupied by the RAM Test Structures (These are all assigned with fixed memory addresses)
+// - 0x000-0x200 = PRAM
+// - 0x200-0x400 = NRAM
+define symbol __ICFEDIT_region_RAM_TEST_start__ = 0x20000000;
+define symbol __ICFEDIT_region_RAM_TEST_end__   = 0x200003FF;
+// - 0x400-0x500 = STACK (used for meerkat standalone only)/ General Use (These items are not fixed)
+// -- only this area of RAM actually addressed by this linker file
+define symbol __ICFEDIT_region_RAM_STACK_start__ = 0x20000400;
+define symbol __ICFEDIT_region_RAM_STACK_end__   = 0x200004BF;
+// -- only this area of RAM actually addressed by this linker file
+define symbol __ICFEDIT_region_RAM_GEN_USE_start__ = 0x200004C0;
+define symbol __ICFEDIT_region_RAM_GEN_USE_end__   = 0x200005FF;
+// - 0x500-0x700 = SHARED_RAM (512 Bytes) (These are all assigned with fixed memory addresses)
+
+// REVIEW: Shared RAM area is no longer used, replace with GEN_USE expansion. (up to 600, free up 600-700 for app use)
+// define symbol __ICFEDIT_region_SHARED_RAM_start__ = 0x20000500;
+// define symbol __ICFEDIT_region_SHARED_RAM_end__   = 0x200006FF;
+
+/*-Sizes-*/
+// Dynamically Allocated Areas
+define symbol __ICFEDIT_size_cstack__ = 0x0C0;   // REVIEW: 0x80 Stack Would Overflow
+define symbol __ICFEDIT_size_heap__   = 0x000;   // REVIEW: no heap?
+/**** End of ICF editor section. ###ICF###*/
+
+
+
+/*-Memory Region Assignments-*/
+// General
+define memory mem with size = 4G;
+
+
+// ROM
+// - Application Area (not part of this project, only included so CRC can be viewed)
+//define region APPLICATION_ROM_region      = mem:[from __ICFEDIT_region_APPLICATION_ROM_start__   to __ICFEDIT_region_APPLICATION_ROM_end__];
+// -- Application Checksum (will be overwritten by application firmware)
+//place at end of APPLICATION_ROM_region { ro section application_crc32_rom };
+
+// - Main Area for this Safety Core
+define region ROM_region      = mem:[from __ICFEDIT_region_ROM_start__   to __ICFEDIT_region_ROM_end__];
+// -- Fixed Location Function Wrappers
+define region FUNC_region = mem:[ from 0x0800E800 to 0x800E8FF ];
+place in FUNC_region { readonly section supervisor_rom };
+// -- Function Implementation Area
+define region Meerkat_region = mem:[ from 0x800E900 to 0x800FFFF ];
+place in Meerkat_region { readonly section meerkat_rom };
+// -- Interrupt Vectors (will be overwritten by application)
+//place at address mem:__ICFEDIT_intvec_start__ { readonly section .intvec };
+// --
+place in ROM_region   { readonly };
+// -- Safety Core Checksum Area
+place at end of ROM_region { ro section safety_crc32_rom };
+
+// - Shared Configuration Area
+define region CONFIG_region      = mem:[from __ICFEDIT_region_SHARED_ROM_start__   to __ICFEDIT_region_SHARED_ROM_end__];
+place in CONFIG_region { readonly section shared_configuration_rom };
+place at end of CONFIG_region { ro section shared_configuration_crc32_rom };
+
+
+// RAM
+// - Block Assignments
+define block CSTACK    with alignment = 8, size = __ICFEDIT_size_cstack__   { };
+define block HEAP      with alignment = 8, size = __ICFEDIT_size_heap__     { };
+
+// - Region Assignments
+// -- Stack Region (Only used when Meerkat Firmware is running without an Application Firmware Loaded)
+define region RAM_STACK_region      = mem:[from __ICFEDIT_region_RAM_STACK_start__   to __ICFEDIT_region_RAM_STACK_end__];
+place in RAM_STACK_region   { block CSTACK };
+// -- General Use RAM
+define region RAM_region      = mem:[from __ICFEDIT_region_RAM_GEN_USE_start__   to __ICFEDIT_region_RAM_GEN_USE_end__];
+place in RAM_region   { readwrite,
+                        block HEAP };
+
+
+
+/* RAM Initialization Options */
+initialize by copy { readwrite };
+do not initialize  { section .noinit };

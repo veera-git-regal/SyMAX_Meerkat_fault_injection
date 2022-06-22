@@ -46,9 +46,11 @@ extern __root const uint16_t MeerkatConfig_ADCCheck_MaxVref_u16; // @ "shared_co
 extern __root const uint16_t MeerkatConfig_ADCCheck_CurrentVarianceTolerance_u16; // @ "shared_configuration_rom" = 0x03FF;
 extern __root const uint16_t MeerkatConfig_ADCCheck_MultiplexerVarianceRequired_u16; // @ "shared_configuration_rom" = 0x00FF;
 
-extern __root const int16_t MeerkatConfig_ADCCheck_MinCurrent_i16; // @ (SHARED_CONFIG_ROM_START+24) = -32000;
-extern __root const int16_t MeerkatConfig_ADCCheck_MaxCurrent_i16; // @ (SHARED_CONFIG_ROM_START+26) = 32000;
-extern __root const uint32_t MeerkatConfig_ADCCheck_MinCurrentSampleSize_u32; // @ (SHARED_CONFIG_ROM_START+28) = 4;
+extern __root const int16_t MeerkatConfig_ADCCheck_MaxRatedSpeed_i16; // @ "shared_configuration_rom" = 4000;
+extern __root const int16_t MeerkatConfig_ADCCheck_MinRatedSpeed_i16; // @ "shared_configuration_rom" = 3000;
+extern __root const float MeerkatConfig_ADCCheck_CurrentSpeedSlope; //@ "shared_configuration_rom" = 0;
+extern __root const float MeerkatConfig_ADCCheck_SpeedCurrentYIntercept; //@ "shared_configuration_rom" = 0;
+extern __root const uint32_t MeerkatConfig_ADCCheck_MinCurrentSampleSize_u32; // @ "shared_configuration_rom" = 4;
 
 extern __root const uint32_t MeerkatConfig_LockedRotorCheck_BemfDiff_u32; // @ (SHARED_CONFIG_ROM_START+52) = 65000;
 extern __root const int32_t MeerkatConfig_OverSpeedCheck_MaxSpeed_u32; // @ (SHARED_CONFIG_ROM_START+56) = 10000;

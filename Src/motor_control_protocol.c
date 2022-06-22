@@ -20,8 +20,6 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "module_meerkat_interface_config.h" // for fault injection routines
-
 #include "user_interface.h"
 #include "motor_control_protocol.h"
 
@@ -407,12 +405,6 @@ __weak void MCP_ReceivedFrame(MCP_Handle_t *pHandle, uint8_t Code, uint8_t *buff
       case MC_PROTOCOL_REG_POSITION_KP:
       case MC_PROTOCOL_REG_POSITION_KI:
       case MC_PROTOCOL_REG_POSITION_KD:
-case MC_PROTOCOL_REG_I_A:
-      case MC_PROTOCOL_REG_I_B:
-      case MC_PROTOCOL_REG_OBS_BEMF_ALPHA:
-      case MC_PROTOCOL_REG_OBS_BEMF_BETA:
-      case MC_PROTOCOL_REG_OBS_BEMF_LEVEL:
-      case MC_PROTOCOL_REG_EST_BEMF_LEVEL:
         {
           int32_t value = UI_GetReg( &pHandle->_Super, bRegID, &bNoError );
           if ( bNoError == true )
@@ -424,29 +416,7 @@ case MC_PROTOCOL_REG_I_A:
         }
         break;
 
-      case MC_PROTOCOL_REG_FLAGS:// Regal Modification: Inject UL Faults into message
- {
-          // int32_t value = UI_GetReg( &pHandle->_Super, bRegID, &bNoError);
-          int32_t value[2];
-          value[0] = UI_GetReg( &pHandle->_Super, bRegID, &bNoError);
-          // value[1] = 0;
-          if ( bNoError == true )
-          {
-            // Add Regal to Bits 16 to 24
-            if (meerkatInterface_FailedTestId >= 0) {
-              value[0] |= MC_PROTOCOL_REGAL_UL_FAULT_FLAG_BASE << meerkatInterface_FailedTestId;
-              value[1] = meerkatInterface_FailedTestCode;
-              pHandle->fFcpSend(pHandle->pFCP, ACK_NOERROR, (uint8_t*)(&value), 8);
-            } else {
-              pHandle->fFcpSend(pHandle->pFCP, ACK_NOERROR, (uint8_t*)(&value), 4);
-            }
-            /* 2x32bit variables */
-            // /* 32bit variables */
-            // pHandle->fFcpSend(pHandle->pFCP, ACK_NOERROR, (uint8_t*)(&value), 8);
-            RequireAck = false;
-          }
-        }
-        break;
+      case MC_PROTOCOL_REG_FLAGS:
       case MC_PROTOCOL_REG_SPEED_REF:
       case MC_PROTOCOL_REG_SPEED_MEAS:
       case MC_PROTOCOL_REG_FF_1Q:
@@ -636,76 +606,6 @@ case MC_PROTOCOL_REG_I_A:
     }
     break;
 
-    #if MEERKAT_ENABLE_FAULT_INJECTION_PROTOTOCOL > 0
-    case MC_PROTOCOL_CODE_REGAL_FAULT_INJECTION:
-    {
-      uint8_t meerkat_test_id = (MC_Protocol_REG_t)buffer[0];
-      switch (meerkat_test_id)
-      {
-        case 0x00: // ADCCHECK
-          {
-            // Write Maximum Value for One Current Phase. This will trigger a 'Phase Coherence Fault'
-            uint16_t *ram_ptr = (uint16_t*)MEERKAT_FAULT_INJECT_ADC_ADDRESS;
-            *ram_ptr = 0x7FFF; 
-            bNoError = true;
-          }
-          break;
-        case 0x01: // REGISTERCHECK
-          {
-            // Write Error Code Directly to  Register Check Test
-            // - REVIEW: Are there other ways to genuinely trigger failure of this test.
-            uint8_t *ram_ptr = (uint8_t*)MEERKAT_FAULT_INJECT_REGISTER_ADDRESS;
-            *ram_ptr = 0x01; 
-            bNoError = true;
-          }
-          break;
-        case 0x02: // CLOCKCHECK
-          {
-            uint32_t *ram_ptr = (uint32_t*)MEERKAT_FAULT_INJECT_CLOCK_ADDRESS;
-            *ram_ptr++ = 0x00; 
-            *ram_ptr++ = 0x00;
-            *ram_ptr++ = 0x00;
-            *ram_ptr++ = 0x00;
-            bNoError = true;
-          }
-          break;
-        case 0x03: // RAMCHECK
-          {
-            // Write Invalid Value to a Meerkat Shadow RAM address that isn't written to frequently (App Identifier).
-            uint8_t *ram_ptr = (uint8_t*)MEERKAT_FAULT_INJECT_RAM_ADDRESS;
-            *ram_ptr = 0x00;
-            bNoError = true;
-          }
-          break;
-        case 0x04: // ROMCHECK
-          {
-            // Set ROM Check to be 'in progress'
-            uint8_t *ram_ptr_stage = (uint8_t*)MEERKAT_FAULT_INJECT_ROM_STAGE_ADDRESS;
-            *ram_ptr_stage = 0x02; // 0x02 = ROM_CHECK_STAGE
-            // - adjust shadow ram so as not to fail the RAM Check 
-            // -- note: RAM Check could still fail if lighting strikes and ram check is looking at this address)
-            uint8_t *ram_ptr_stage_n = (uint8_t*)MEERKAT_FAULT_INJECT_ROM_STAGE_N_ADDRESS; // shadow ram
-            *ram_ptr_stage_n = ~0x01; // 0x01 = ROM_CHECK_STAGE
-
-
-            // Set the ROM CRC Start Value to a Random number to throw off the calculation
-            uint8_t *ram_ptr_crc = (uint8_t*)MEERKAT_FAULT_INJECT_ROM_CRC_ADDRESS;
-            *ram_ptr_crc = 0xAA; // 0x01 = ROM_CHECK_STAGE
-            // - adjust shadow ram so as not to fail the RAM Check 
-            // -- note: RAM Check could still fail if lighting strikes and ram check is looking at this address)
-            uint8_t *ram_ptr_crc_n = (uint8_t*)MEERKAT_FAULT_INJECT_ROM_CRC_N_ADDRESS;
-            *ram_ptr_crc_n = (uint8_t)(~0xAA); // 0x01 = ROM_CHECK_STAGE
-            bNoError = true;
-          }
-          break;
-        default:  // Undefined
-          {
-          }
-          break;
-      }
-    }
-#endif // MEERKAT_ENABLE_FAULT_INJECTION_PROTOTOCOL > 0
-    
   case MC_PROTOCOL_CODE_NONE:
     {
     }

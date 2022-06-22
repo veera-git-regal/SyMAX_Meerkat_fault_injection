@@ -28,6 +28,7 @@
 #include "parameters_conversion.h"
 #include "motorcontrol.h"
 #include "stm32f3xx_it.h"
+#include "module_meerkat_interface.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -58,8 +59,6 @@
 void ADC1_2_IRQHandler(void);
 void TIMx_UP_M1_IRQHandler(void);
 void TIMx_BRK_M1_IRQHandler(void);
-//void SPD_TIM_M1_IRQHandler(void);
-void USART_IRQHandler(void);
 void HardFault_Handler(void);
 void SysTick_Handler(void);
 
@@ -85,7 +84,11 @@ void ADC1_2_IRQHandler(void)
   LL_ADC_ClearFlag_JEOS( ADC1 );
 
   // Highfrequency task 
-  UI_DACUpdate(TSK_HighFrequencyTask());
+  /** @PamDebug  **/
+ // UI_DACUpdate(TSK_HighFrequencyTask()); //org_Pam
+  TSK_HighFrequencyTask();
+  UI_DACUpdate(0); 
+  /** @PamDebug  **/
  /* USER CODE BEGIN HighFreq */
 
  /* USER CODE END HighFreq  */  
@@ -138,103 +141,6 @@ void TIMx_BRK_M1_IRQHandler(void)
 }
 
 /**
-  * @brief  This function handles TIMx global interrupt request for M1 Speed Sensor.
-  * @param  None
-  * @retval None
-  */
-//void SPD_TIM_M1_IRQHandler(void)
-//{
-  /* USER CODE BEGIN SPD_TIM_M1_IRQn 0 */
-
-  /* USER CODE END SPD_TIM_M1_IRQn 0 */ 
-  
-  /* HALL Timer Update IT always enabled, no need to check enable UPDATE state */
-  //if (LL_TIM_IsActiveFlag_UPDATE(HALL_M1.TIMx) != 0)
-  //{
-    //LL_TIM_ClearFlag_UPDATE(HALL_M1.TIMx);
-    //HALL_TIMx_UP_IRQHandler(&HALL_M1);
-    /* USER CODE BEGIN M1 HALL_Update */
-
-    /* USER CODE END M1 HALL_Update   */ 
-  //}
-  //else
-  //{
-    /* Nothing to do */
-  //}
-  /* HALL Timer CC1 IT always enabled, no need to check enable CC1 state */
-  //if (LL_TIM_IsActiveFlag_CC1 (HALL_M1.TIMx)) 
-  //{
-    //LL_TIM_ClearFlag_CC1(HALL_M1.TIMx);
-    //HALL_TIMx_CC_IRQHandler(&HALL_M1);
-    /* USER CODE BEGIN M1 HALL_CC1 */
-
-    /* USER CODE END M1 HALL_CC1 */ 
-  //}
-  //else
-  //{
-  /* Nothing to do */
-  //}
-  /* USER CODE BEGIN SPD_TIM_M1_IRQn 1 */
-
-  /* USER CODE END SPD_TIM_M1_IRQn 1 */ 
-//}
-
-/*Start here***********************************************************/
-/*GUI, this section is present only if serial communication is enabled*/
-/**
-  * @brief  This function handles USART interrupt request.
-  * @param  None
-  * @retval None
-  */
-void USART_IRQHandler(void)
-{
-
- /* USER CODE BEGIN USART_IRQn 0 */
-
-  /* USER CODE END USART_IRQn 0 */
-  if (LL_USART_IsActiveFlag_RXNE(pUSART.USARTx)) /* Valid data have been received */
-  {
-    uint16_t retVal;
-    retVal = *(uint16_t*)UFCP_RX_IRQ_Handler(&pUSART,LL_USART_ReceiveData8(pUSART.USARTx));
-    if (retVal == 1)
-    {
-      UI_SerialCommunicationTimeOutStart();
-    }
-    if (retVal == 2)
-    {
-      UI_SerialCommunicationTimeOutStop();
-    }
-  /* USER CODE BEGIN USART_RXNE */
-
-  /* USER CODE END USART_RXNE  */ 
-  }
-
-  if (LL_USART_IsActiveFlag_TXE(pUSART.USARTx))
-  {
-    UFCP_TX_IRQ_Handler(&pUSART);
-    /* USER CODE BEGIN USART_TXE */
-
-    /* USER CODE END USART_TXE   */
-  }
-  
-  if (LL_USART_IsActiveFlag_ORE(pUSART.USARTx)) /* Overrun error occurs */
-  {
-    /* Send Overrun message */
-    UFCP_OVR_IRQ_Handler(&pUSART);
-    LL_USART_ClearFlag_ORE(pUSART.USARTx); /* Clear overrun flag */
-    UI_SerialCommunicationTimeOutStop();
-    /* USER CODE BEGIN USART_ORE */
-
-    /* USER CODE END USART_ORE   */   
-  }
-  /* USER CODE BEGIN USART_IRQn 1 */
-  
-  /* USER CODE END USART_IRQn 1 */
-
-}
-/*End here***********************************************************/
-
-/**
   * @brief  This function handles Hard Fault exception.
   * @param  None
   * @retval None
@@ -249,14 +155,13 @@ void HardFault_Handler(void)
   /* Go to infinite loop when Hard Fault exception occurs */
   while (1)
   {
-   
-    }  
+
   }
  /* USER CODE BEGIN HardFault_IRQn 1 */
 
  /* USER CODE END HardFault_IRQn 1 */
 
-
+}
 
 void SysTick_Handler(void)
 {
@@ -290,6 +195,46 @@ static uint8_t SystickDividerCounter = SYSTICK_DIVIDER;
 /**
   * @}
   */
+/* USER CODE BEGIN 1 */
+/**
+  * @brief  This function handles DMA transfer complete interrupt
+  * @param  None
+  * @retval None
+  */
+void DMA1_Channel1_IRQHandler(void)
+{
+  if ( LL_DMA_IsActiveFlag_TC1(DMA1) ){
+    LL_ADC_REG_InitTypeDef ADC_REG_InitStruct = {0};
+    LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_1);
+    //change over the regular channel conversions to use software trigger
+    ADC_REG_InitStruct.TriggerSource = LL_ADC_REG_TRIG_SOFTWARE;
+    ADC_REG_InitStruct.SequencerDiscont = LL_ADC_REG_SEQ_DISCONT_DISABLE;
+    ADC_REG_InitStruct.ContinuousMode = LL_ADC_REG_CONV_SINGLE;
+    ADC_REG_InitStruct.DMATransfer = LL_ADC_REG_DMA_TRANSFER_NONE;
+    ADC_REG_InitStruct.Overrun = LL_ADC_REG_OVR_DATA_PRESERVED;
+    LL_ADC_REG_Init(ADC1, &ADC_REG_InitStruct); 
+    
+    //update the external thermistor
+    NTC_CalcAvTemp(&TempSensorParamsM1);
+    
+    //update VREF for meerkat
+    MeerkatInterface_GetVrefSample();
+
+    //change regular conversion back to timer trigger and DMA transfer
+    ADC_REG_InitStruct.TriggerSource = LL_ADC_REG_TRIG_EXT_TIM2_TRGO;
+    ADC_REG_InitStruct.SequencerDiscont = LL_ADC_REG_SEQ_DISCONT_DISABLE;
+    ADC_REG_InitStruct.ContinuousMode = LL_ADC_REG_CONV_SINGLE;
+    ADC_REG_InitStruct.DMATransfer = LL_ADC_REG_DMA_TRANSFER_LIMITED;
+    ADC_REG_InitStruct.Overrun = LL_ADC_REG_OVR_DATA_PRESERVED;
+    LL_ADC_REG_Init(ADC1, &ADC_REG_InitStruct);
+    LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_1, LL_ADC_CHANNEL_11);
+    //do some DMA housekeeping
+    LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_1, M1_VBUS_SW_FILTER_BW_FACTOR);
+    LL_DMA_ClearFlag_TC1(DMA1);
+    LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_1);
+    LL_ADC_REG_StartConversion(ADC1);
+  }
+}
 
 /**
   * @}

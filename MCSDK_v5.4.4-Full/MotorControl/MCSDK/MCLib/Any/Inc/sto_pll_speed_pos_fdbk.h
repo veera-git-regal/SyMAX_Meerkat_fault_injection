@@ -182,13 +182,6 @@ typedef struct
   
 } STO_PLL_Handle_t;
 
-typedef struct {
-	int32_t wAvrQuadraticError_s32;
-	int32_t wAvrSquareSpeed_s32;
-	int32_t wAvrSpeed_dpp_s32;  
-    uint16_t counter_u16;
-    uint8_t id_u8;
-} Module_Debug;
 
 /* Exported functions ------------------------------------------------------- */
 

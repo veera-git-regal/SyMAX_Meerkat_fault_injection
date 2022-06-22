@@ -14,11 +14,15 @@
 #include "mc_api.h" // used by Risk Addressed State and ismotor Running REVIEW: Remove this dependency if possible
 #include "module_meerkat_interface.h" 
 #include "module_meerkat_interface_config.h"
-#include "ui_task.h" // !error Temporary for bemf readings and locked rotor detection
+//#include "ui_task.h" // !error Temporary for bemf readings and locked rotor detection
+#include "mc_tasks.h"
+#include "mc_config.h"
+
 #include "module_meerkat_shared_rom.h" // !error temporary for bemf detection prototyping
 #include "regular_conversion_manager.h" 
 #include "parameters_conversion.h"
 #include "drive_parameters.h"
+#include "parameters_conversion.h"
 
 // Meerkat Inteface Description
 // - INITIALIZATION
@@ -47,9 +51,10 @@
 #define RISK_ADDR_STATE_ON 1
 #define RISK_ADDR_STATE_RESET_PENDING 2
 
-extern MCI_Handle_t *pMCI[1];
-extern MCT_Handle_t *pMCT[1];
-extern uint32_t wConfig[1];
+extern MCI_Handle_t *pMCI[NBR_OF_MOTORS];
+extern MCT_Handle_t *pMCT[NBR_OF_MOTORS];
+extern uint32_t wConfig[NBR_OF_MOTORS];
+extern STM_Handle_t STM[NBR_OF_MOTORS];
 
 // Test Related Data Storage
 volatile bool meerkatInterface_Ready = false; // Limits calls to MeerkatCore_SupervisorRun to 1/ms. volatile: changes value in systick interrupt.
@@ -70,6 +75,7 @@ RegConv_t VrefRegConv = {.regADC = ADC1,.channel = MC_ADC_CHANNEL_18,.samplingTi
 // ======= Main State Machine =START=
 // Local stage(state) name define in enum
 enum { // Default APPs/Driver stage template
+  MEM_INIT,
     INITIALIZE_MODULE,
     RUN_MODULE,
     // any other stage in here !!!
@@ -93,19 +99,24 @@ uint8_t MeerkatInterface_RunStateMachine(uint8_t driver_identifier_u8, uint8_t p
 #if DISABLE_MEERKAT_SAFETY_MODULE == 0
     uint8_t return_stage_u8 = INITIALIZE_MODULE;
     switch (next_state_u8) {
+    case MEM_INIT:
+      {
+        return_stage_u8 = INITIALIZE_MODULE;
+        break; 
+      }
         case INITIALIZE_MODULE: { // initialization stage - prepare tests
 #if DISABLE_MEERKAT_SAFETY_MODULE_INIT == 0
             MeerkatCore_SupervisorInit(); // Core
             if (meerkatInterface_FaultCode == 0 && !meerkatInterface_RiskAddrState) {
 #if DISABLE_MEERKAT_AUTO_START == 0
-           //    MeerkatInterface_RestartMotor();
+                MeerkatInterface_RestartMotor();
 #endif // DISABLE_MEERKAT_AUTO_START == 0
             }
 #endif //DISABLE_MEERKAT_SAFETY_MODULE_INIT == 0
             
             //register VREF ADC callback 
             vref_adc_callback_handle_u8 = RCM_RegisterRegConv(&VrefRegConv);
-            if ( vref_adc_callback_handle_u8 > 4 /*RCM_MAX_CONV*/ ){
+            if ( vref_adc_callback_handle_u8 >  RCM_MAX_CONV ){
               return_stage_u8 = KILL_MODULE;
             } 
             return_stage_u8 = RUN_MODULE;
@@ -147,19 +158,7 @@ uint8_t MeerkatInterface_RunStateMachine(uint8_t driver_identifier_u8, uint8_t p
   */
 uint8_t MeerkatInterface_RunTests(void) {
     // TODO: Tests Passed - Add Monitoring of both the 'Tests Passed' and the 'Tests Failed' here.
-    // - Add this capability to our monitoring software.
-   //get the Vref
-    RCM_UserConvState_t Udrc_state = RCM_GetUserConvState();
-    if ( Udrc_state == RCM_USERCONV_IDLE ){
-      RCM_RequestUserConv(vref_adc_callback_handle_u8);
-    } else if ( Udrc_state == RCM_USERCONV_EOC ){
-      uint16_t adc_vref_u16 = RCM_GetUserConv();
-      if ( adc_vref_u16 != 0xFFFF){
-       //make left justified data from ADC into actual value by shifting right 4
-       meerkatCore_Vref_u16 = adc_vref_u16 >> 4;
-      }   
-    }     
-    
+    // - Add this capability to our monitoring software.    
     //execute tests every millisecond
     if (meerkatInterface_Ready) {
         meerkatInterface_Ready = false; // reset the flag to ensure this isn't called more than once per millisecond
@@ -178,9 +177,10 @@ uint8_t MeerkatInterface_RunTests(void) {
         int32_t speed_rpm = (int32_t)((MC_GetMecSpeedAverageMotor1() * _RPM)/SPEED_UNIT);
         MeerkatInterface_AddMeasuredSpeedSample(speed_rpm);
         if (motor_is_running) {
-            MeerkatInterface_AddBemfTorqueSamples();
+          MeerkatInterface_AddBemfTorqueSamples();
         } else {
             // REVIEW: Should we add zero samples when the motor is stopped?
+          MeerkatInterface_AddBemfTorqueSamples();
         }
 
         // Run the Safety Core (single iteration)
@@ -225,9 +225,12 @@ void MeerkatInterface_RiskAddrStateSetCallback(void) {
 
     // Store Risk Addressed State Value so that we can detected when it is cleared
     meerkatInterface_RiskAddrState = RISK_ADDR_STATE_ON; // TODO: Magic number
-
+    
     // Tell the Motor Control State Machine to stop, so that it is not out of sync when the fault is released.
     MC_StopMotor1(); // - tell motor control system to stop trying to turn the motor (pwm is already disabled so it is futile)
+    if ( meerkatInterface_FailedTestId >= 0 ){
+      STM_FaultProcessing(&STM[M1], MC_SAFETY_CORE, 0); 
+    }
 }
 
 /**
@@ -237,21 +240,23 @@ void MeerkatInterface_RiskAddrStateSetCallback(void) {
   ********************************************************************************************************************************
   */
 void MeerkatInterface_RiskAddrStateClearedCallback(void) {
-    if (meerkatInterface_RiskAddrState > RISK_ADDR_STATE_OFF) { // Risk Addressed State was just cleared.
-        meerkatInterface_FaultCode = 0;
-        meerkatInterface_RiskAddrState = RISK_ADDR_STATE_OFF; // Clear the local copy of RiskAddressedState
-        meerkatInterface_FailedTestId = -1;
-        meerkatInterface_FailedTestCode = 0;
-        meerkatInterface_ClockSampleCounter_u8 = 0;
-        meerkatInterface_TimeMs_u32 = 0;
-        // Run single time operations here, if desired.
-        #if DISABLE_MEERKAT_AUTO_START == 0
-            // REVIEW: Could add 'Advanced Retry' - (signal Restart of Motor by 'modular' compatible means)
-            MeerkatInterface_RestartMotor();
-        #endif // DISABLE_MEERKAT_AUTO_START == 0
-    } else { // Risk Addressed State is off but was already off  
-        // Run recurring operations here, if desired
-    }
+  STM_FaultProcessing(&STM[M1], 0, MC_SAFETY_CORE);
+  if (meerkatInterface_RiskAddrState > RISK_ADDR_STATE_OFF) { // Risk Addressed State was just cleared.
+      meerkatInterface_FaultCode = 0;
+      meerkatInterface_RiskAddrState = RISK_ADDR_STATE_OFF; // Clear the local copy of RiskAddressedState
+      meerkatInterface_FailedTestId = -1;
+      meerkatInterface_FailedTestCode = 0;
+      meerkatInterface_ClockSampleCounter_u8 = 0;
+      meerkatInterface_TimeMs_u32 = 0;
+
+      // Run single time operations here, if desired.
+      #if DISABLE_MEERKAT_AUTO_START == 0
+          // REVIEW: Could add 'Advanced Retry' - (signal Restart of Motor by 'modular' compatible means)
+          MeerkatInterface_RestartMotor();
+      #endif // DISABLE_MEERKAT_AUTO_START == 0
+  } else { // Risk Addressed State is off but was already off  
+      // Run recurring operations here, if desired
+  }
 }
 // ======= Safety Interface - Local Response To Test Results ==END==
 
@@ -331,7 +336,7 @@ void MeerkatInterface_AddShuntCurrentSample(int16_t phase_current_ia, int16_t ph
     #if ENABLE_TIMING_DEBUG_PIN >= 1  
     LL_GPIO_SetOutputPin(TIMING_DEBUG_PORT, TIMING_DEBUG_PIN);
     #endif //ENABLE_TIMING_DEBUG_PIN >= 1  
-   // MeerkatCore_AddShuntCurrentSample(phase_current_ia, phase_current_ib, phase_current_ic);
+    MeerkatCore_AddShuntCurrentSample(phase_current_ia, phase_current_ib, phase_current_ic);
     #if ENABLE_TIMING_DEBUG_PIN >= 1  
     LL_GPIO_ResetOutputPin(TIMING_DEBUG_PORT, TIMING_DEBUG_PIN);
     #endif //ENABLE_TIMING_DEBUG_PIN >= 1
@@ -372,7 +377,32 @@ void MeerkatInterface_AddTemperature2Sample(uint16_t adc_value) {
   ********************************************************************************************************************************
   */
 void MeerkatInterface_AddVrefSample(uint16_t adc_value) {
-    meerkatCore_Vref_u16 = adc_value; //meerkatCore_Vbus_u16;// 
+    meerkatCore_Vref_u16 = adc_value;  
+}
+
+void MeerkatInterface_GetVrefSample ( void ) {
+  #if DISABLE_MEERKAT_SAFETY_MODULE >= 1
+    return;
+  #endif //DISABLE_MEERKAT_SAFETY_MODULE >= 1
+  if ( vref_adc_callback_handle_u8 <= RCM_MAX_CONV){
+    uint16_t adc_vref_u16 = RCM_ExecRegularConv(vref_adc_callback_handle_u8);
+    if ( adc_vref_u16 != 0xFFFF){
+      //make left justified data from ADC into actual value by shifting right 4
+      meerkatCore_Vref_u16 = adc_vref_u16 >> 4;
+    } 
+  }
+}
+
+/**
+  ********************************************************************************************************************************
+  * @brief  MeerkatInterface_AddVbusSample is a simple function to allow the Application firmware to send a voltage bus reading 
+  * - data to the Meerkat Safety Core.
+  * @details 
+  * - The vbus reference input is an integral part of the stagnation
+  ********************************************************************************************************************************
+  */
+void MeerkatInterface_AddVbusSample(uint16_t adc_value) {
+    meerkatCore_Vbus_u16 = adc_value;  
 }
 
 /**
@@ -391,14 +421,23 @@ void MeerkatInterface_AddBemfTorqueSamples(void) { // LockedRotor/ NoLoad detect
     // Locked Rotor Detection: Expected bemf vs observed bemf
     // - when observed bemf is much lower than expected bemf, then the rotor is locked
     // - Get values from Motor Control System
-    MCP_Handle_t* pHandle = GetMCP();
-    meerkatCore_ObservedBEMF_s32 = UI_GetReg( &pHandle->_Super, MC_PROTOCOL_REG_OBS_BEMF_LEVEL, MC_NULL );
-    meerkatCore_ExpectedBEMF_s32 = UI_GetReg( &pHandle->_Super, MC_PROTOCOL_REG_EST_BEMF_LEVEL, MC_NULL );
+    uint32_t hUICfg = wConfig[M1];
+    SpeednPosFdbk_Handle_t* pSPD = MC_NULL;
+    if (MAIN_SCFG_VALUE(hUICfg) == UI_SCODE_STO_PLL) pSPD = pMCT[M1]->pSpeedSensorMain;
+    if (AUX_SCFG_VALUE(hUICfg) == UI_SCODE_STO_PLL) pSPD = pMCT[M1]->pSpeedSensorAux;    
+
+    //meerkatCore_ObservedBEMF_s32 = UI_GetReg( &pHandle->_Super, MC_PROTOCOL_REG_OBS_BEMF_LEVEL, MC_NULL ); 
+    if (pSPD != MC_NULL) meerkatCore_ObservedBEMF_s32 = STO_PLL_GetObservedBemfLevel((STO_PLL_Handle_t*)pSPD) >> 16;
+
+
+   // meerkatCore_ExpectedBEMF_s32 = UI_GetReg( &pHandle->_Super, MC_PROTOCOL_REG_EST_BEMF_LEVEL, MC_NULL );
+    if (pSPD != MC_NULL) meerkatCore_ExpectedBEMF_s32 = STO_PLL_GetEstimatedBemfLevel((STO_PLL_Handle_t*)pSPD) >> 16;
 
     // No Load Detection:
     // - If speedf greater than limit and torque less than threshold, it is a 'no load overspeed' failure.
     // - Get values from Motor Control System
-    meerkatCore_MeasuredTorque_s32 = UI_GetReg( &pHandle->_Super, MC_PROTOCOL_REG_TORQUE_MEAS, MC_NULL );
+    //meerkatCore_MeasuredTorque_s32 = UI_GetReg( &pHandle->_Super, MC_PROTOCOL_REG_TORQUE_MEAS, MC_NULL );
+    if (pSPD != MC_NULL) meerkatCore_MeasuredTorque_s32 = SPD_GetElAngle(pSPD);
 }
 
 /**
@@ -409,11 +448,9 @@ void MeerkatInterface_AddBemfTorqueSamples(void) { // LockedRotor/ NoLoad detect
   * - Returns 1 if motor is running
   ********************************************************************************************************************************
   **/
-uint32_t meerkatCore_TestInterface_u32;
-
 uint8_t MeerkatInterface_MotorIsRunning(void) { 
     State_t motor_state = MC_GetSTMStateMotor1(); //MCI_GetSTMState(pMCI);
-  //  meerkatCore_TestInterface_u32 = motor_state;
+//    meerkatCore_TestInterface_u32 = motor_state;
     
     if (motor_state == RUN) {
         return 1;
@@ -421,13 +458,66 @@ uint8_t MeerkatInterface_MotorIsRunning(void) {
         return 0;
     }
 }
+
+/**
+  ********************************************************************************************************************************
+  * @brief  Accessor for fault code
+  * @details 
+  * - Returns current fault enum
+      ADCCHECK = 0x01 - - - - - -
+        ADC_VREF_CHECK = 0x01000000                               MEERKAT_ADC_VREF_CHECK = 0x0001
+        ADC_STAGNANCY_CHECK = 0x01000001                          MEERKAT_ADC_STAGNANCY_CHECK = 0x0002
+        ADC_CURRENT_CHECK = 0x01000002                            MEERKAT_ADC_CURRENT_CHECK = 0x0004
+        ADC_MUX_CHECK = 0x01000003                                MEERKAT_ADC_MUX_CHECK = 0x0008
+        ADC_SHUNT_CURRENT_CHECK  = 0x01000004                     MEERKAT_ADC_SHUNT_CURRENT_CHECK  = 0x0010
+        ADC_LOCK_ROTOR_CHECK = 0x01000005                         MEERKAT_ADC_LOCK_ROTOR_CHECK = 0x0020
+        ADC_OVER_SPEED_CHECK = 0x01000006                         MEERKAT_ADC_OVER_SPEED_CHECK = 0x0040
+      REGISTERCHECK  = 0x02 - - - - - -            ---->>>>
+        REG_CHECK_FAIL = 0x02000001                               MEERKAT_REG_CHECK_FAIL = 0x0080
+      CLOCKCHECK  = 0x03 - - - - - - 
+        CLOCK_SYSTIC_CHECK = 0x03000001                           MEERKAT_CLOCK_SYSTIC_CHECK = 0x0100
+        CLOCK_LIS_CHECK = 0x03000002                              MEERKAT_CLOCK_LIS_CHECK = 0x0200
+      RAMCHECK =  0x04 - - - - - - 
+        RAM_CHECK_FAIL = 0x04000002                               MEERKAT_RAM_CHECK_FAIL = 0x0400
+      ROMCHECK =  = 0x05 - - - - - - 
+        ROM_CHECK_SAFETY  = 0x05000012                            MEERKAT_ROM_CHECK_SAFETY  = 0x0800
+        ROM_CHECK_CONFIG  = 0x05000013                            MEERKAT_ROM_CHECK_CONFIG  = 0x1000
+        ROM_CHECK_APPLICATION  = 0x05000014                       MEERKAT_ROM_CHECK_APPLICATION  = 0x2000
+  ********************************************************************************************************************************
+  **/
+uint16_t MeerkatInterface_FaultCode(void) { 
+  uint16_t fault_u16 = 0;
+  uint8_t test_type_u8 = (uint8_t)(meerkatInterface_FaultCode >> 6);
+  uint8_t specific_failure_u8 = (uint8_t)(meerkatInterface_FaultCode);
+  switch (test_type_u8){
+  case 1:
+    fault_u16 = 1 << specific_failure_u8;
+    break;
+  case 2:
+    fault_u16 = MEERKAT_REG_CHECK_FAIL;
+    break;
+  case 3:
+    fault_u16 = 1 << (specific_failure_u8 + 7);
+    break;
+  case 4:
+    fault_u16 = MEERKAT_RAM_CHECK_FAIL;
+    break;
+  case 5:
+    fault_u16 = 1 << (specific_failure_u8 - 1);
+    break;
+  }
+  return fault_u16;
+}
+
 // ======= Safety Interface - Data Input to Core ==END==
 
 
 // ======= Safety Interface - Custom to this Project =START=
 void MeerkatInterface_RestartMotor(void) { // ERM Gen0 specific
-   // MCP_Handle_t* pHandle = GetMCP();
-    MCI_ExecSpeedRamp( pMCI[M1], 1800, 500 ); // speed_rpm + duration
+    //MCP_Handle_t* pHandle = GetMCP();
+   // UI_ExecSpeedRamp(&pHandle->_Super, 3000 ,500); // speed_rpm + duration
+    MCI_ExecSpeedRamp( pMCI[M1], 3000, 500 );
     MC_StartMotor1();
 }
 // ======= Safety Interface - Custom to this Project ==END==
+

@@ -32,9 +32,6 @@
 #include "pqd_motor_power_measurement.h"
  #include "user_interface.h"
 
-#include "motor_control_protocol.h"
-#include "usart_frame_communication_protocol.h"
-
 #include "dac_common_ui.h"
 #include "dac_ui.h"
 
@@ -42,7 +39,6 @@
 
 #include "inrush_current_limiter.h"
 extern RevUpCtrl_Handle_t RevUpControlM1;
-//#include "hall_speed_pos_fdbk.h"
 #include "ramp_ext_mngr.h"
 #include "circle_limitation.h"
 
@@ -62,7 +58,6 @@ extern PQD_MotorPowMeas_Handle_t *pPQD_MotorPowMeasM1;
 extern VirtualSpeedSensor_Handle_t VirtualSpeedSensorM1;
 extern STO_Handle_t STO_M1;
 extern STO_PLL_Handle_t STO_PLL_M1;
-//extern HALL_Handle_t HALL_M1;
 extern ICL_Handle_t ICL_M1;
 extern RDivider_Handle_t RealBusVoltageSensorParamsM1;
 extern CircleLimitation_Handle_t CircleLimitationM1;
@@ -72,10 +67,9 @@ extern UI_Handle_t UI_Params;
 
 extern DAC_UI_Handle_t DAC_UI_Params;
 
-extern UFCP_Handle_t pUSART;
-
 /* USER CODE BEGIN Additional extern */
 void RegalSetting_Init(void);   //Regal user configurable parameters redirection & init table
+RDivider_Handle_t * Get_RDivider_Handle(void);
 
 /* USER CODE END Additional extern */  
 #define NBR_OF_MOTORS 1

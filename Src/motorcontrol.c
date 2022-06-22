@@ -54,11 +54,12 @@ __weak void MX_MotorControl_Init(void)
   /* Reconfigure the SysTick interrupt to fire every 500 us. */
   HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/SYS_TICK_FREQUENCY);
   /* Initialize the Motor Control Subsystem */
-  MCboot(pMCI,pMCT);
+  MCboot(pMCI,pMCT); //SPA REVIEW TODO
   mc_lock_pins();
   
   /* Initialize the MC User Interface */
-  UI_TaskInit(wConfig,NBR_OF_MOTORS,pMCI,pMCT,s_fwVer);
+  /** @PamDebug 3: **/
+  UI_TaskInit(wConfig,NBR_OF_MOTORS,pMCI,pMCT,s_fwVer); 
 }
 
 /**

@@ -68,17 +68,17 @@ uint8_t p_moduleECM_ICL_u32(uint8_t module_id_u8, uint8_t prev_state_u8, uint8_t
 			
 			/* GPIO Ports Clock Enable */
 			//LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
-			LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
+			LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
 
 			// initialization for ICL relay output pin
-			GPIO_InitStruct.Pin 			= LL_GPIO_PIN_4;
+			GPIO_InitStruct.Pin 			= LL_GPIO_PIN_11;
 			GPIO_InitStruct.Mode 			= LL_GPIO_MODE_OUTPUT;
 			GPIO_InitStruct.Speed 			= LL_GPIO_SPEED_FREQ_LOW;
 			GPIO_InitStruct.OutputType 		= LL_GPIO_OUTPUT_PUSHPULL;
 			GPIO_InitStruct.Pull 			= LL_GPIO_PULL_NO;
-			LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+			LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-			LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_4);	// ICL is on/engaged	
+			LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_11);	// ICL is on/engaged	
 			module_InrushCurrentControl.isICLEngaged = TRUE;
 			module_InrushCurrentControl.errorCode_u8 = 0;
 			return_state_u8 = BUS_LOW_WITH_ICL_ENGAGED;
@@ -106,7 +106,7 @@ uint8_t p_moduleECM_ICL_u32(uint8_t module_id_u8, uint8_t prev_state_u8, uint8_t
 			icl_comparison_voltage_u16 = VBS_GetAvBusVoltage_V(PQD_MotorPowMeasM1.pVBS);
 			if(icl_comparison_voltage_u16 < VBUS_TO_ENGAGE_ICL) {
 				// bus has fallen low enough to re-engage ICL
-				LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_4);	// ICL is on/engaged
+				LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_11);	// ICL is on/engaged
 				module_InrushCurrentControl.isICLEngaged = TRUE;
 			 	time_icl_circuit_engages_u64 = 0;
 				time_icl_circuit_disengages_u64 = 0;
@@ -117,7 +117,7 @@ uint8_t p_moduleECM_ICL_u32(uint8_t module_id_u8, uint8_t prev_state_u8, uint8_t
 			  	// bus has been high enough for long enough and can disengage ICL
 				time_icl_circuit_disengages_u64 = 0;
 				isICLBusTiming = FALSE;
-				LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_4); // disengage ICL from circuit
+				LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_11); // disengage ICL from circuit
 				module_InrushCurrentControl.isICLEngaged = FALSE;
             	return_state_u8 = BUS_IS_GOOD_TO_RUN_MOTOR;
 				if(MC_GetOccurredFaultsMotor1())  //if any fault happen
@@ -145,7 +145,7 @@ uint8_t p_moduleECM_ICL_u32(uint8_t module_id_u8, uint8_t prev_state_u8, uint8_t
 			icl_comparison_voltage_u16 = VBS_GetAvBusVoltage_V(PQD_MotorPowMeasM1.pVBS);
 			if(icl_comparison_voltage_u16 > VBUS_TO_DISENGAGE_ICL) {
 				// bus has risen and need to remove ICL
-				LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_4);	// ICL is off/disaengaged
+				LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_11);	// ICL is off/disaengaged
 				module_InrushCurrentControl.isICLEngaged = FALSE;
 			 	time_icl_circuit_engages_u64 = 0;
 				time_icl_circuit_disengages_u64 = 0;
@@ -156,7 +156,7 @@ uint8_t p_moduleECM_ICL_u32(uint8_t module_id_u8, uint8_t prev_state_u8, uint8_t
 			  	// bus has been low for long enough and can re-engage ICL
 				time_icl_circuit_engages_u64 = 0;
 				isICLBusTiming = FALSE;
-				LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_4); // engage ICL circuit
+				LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_11); // engage ICL circuit
 				module_InrushCurrentControl.isICLEngaged = TRUE;
             	return_state_u8 = BUS_LOW_WITH_ICL_ENGAGED;
             }

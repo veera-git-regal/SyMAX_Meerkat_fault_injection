@@ -14,6 +14,7 @@
 #include "module_meerkat_shared_rom.h"
 
 // Shared ROM Checksum Area
+__root const uint32_t Application_CRC @ "application_crc32_rom" = 0x00000000; // This is a placeholder for the Application Checksum
 __root const uint32_t Config_CRC @ "shared_configuration_crc32_rom" = 0x00000000; // This is a placeholder for Settings Checksum (CRC32)
 // -- checksum is generated and placed using IAR's ielftool(Polynomial 0x04C11DB7)
 // --- post-build script will generate a warning if this value is not set to 0x00000000
@@ -30,9 +31,9 @@ __root const uint32_t Config_CRC @ "shared_configuration_crc32_rom" = 0x00000000
 // - Flash Word Size
 #define SHARED_CONFIG_ROM_BLOCK_SIZE 0x04 
 // - Flash ROM Addresses
-#define SHARED_CONFIG_ROM_START 0x0800E000 // (REVIEW: Can we link this to linker file and still 'address' the consts below?)
-#define SHARED_CONFIG_ROM_END 0x0800E800 // Exclusive: This value is not included in the address space
-#define SHARED_CONFIG_ROM_CRC_ADDR 0x0800E7FC // For Reference
+#define SHARED_CONFIG_ROM_START 0x0800D800 // (REVIEW: Can we link this to linker file and still 'address' the consts below?)
+#define SHARED_CONFIG_ROM_END 0x0800E000 // Exclusive: This value is not included in the address space
+#define SHARED_CONFIG_ROM_CRC_ADDR 0x0800DFFC // For Reference
 #define SHARED_CONFIG_ROM_LAST_BLOCK_START (SHARED_CONFIG_ROM_END-2*SHARED_CONFIG_ROM_BLOCK_SIZE) 
 #define SHARED_CONFIG_ROM_LAST_BLOCK_END (SHARED_CONFIG_ROM_END-1*SHARED_CONFIG_ROM_BLOCK_SIZE) // Exclusive: This value is not included in the address space
 
@@ -51,97 +52,122 @@ __root const uint32_t MeerkatConfig_ClockCheck_IdealLsiCounts_u32 @ (THIS_BLOCK_
 #undef THIS_BLOCK_ADDR
 #define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (1 * SHARED_CONFIG_ROM_BLOCK_SIZE))
 __root const float MeerkatConfig_ClockCheck_AcceptableVariance_f @ (THIS_BLOCK_ADDR) = 0.35; // 0.35 = +-35%, float is 4 bytes
-// __root const float MeerkatConfig_ClockCheck_AcceptableVariance_f @ "shared_configuration_rom" = 0.35; // 0.35 = +-35%, float is 4 bytes
-// chunk 2: u8, u8, 
+
+// chunk 2: u8, u8, u8, u8
 #undef THIS_BLOCK_ADDR
 #define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (2 * SHARED_CONFIG_ROM_BLOCK_SIZE))
 __root const uint8_t MeerkatConfig_ClockCheck_HysteresisLsiTick_u8 @ (THIS_BLOCK_ADDR+0) = 3;
 __root const uint8_t MeerkatConfig_ClockCheck_HysteresisSysTick_u8 @ (THIS_BLOCK_ADDR+1) = 20;
-__root const uint8_t MeerkatConfig_ADCCheck_Hysteresis_u8 @ (THIS_BLOCK_ADDR+2) = 3; 
-__root const uint8_t MeerkatConfig_RAMCheck_Hysteresis_u8 @ (THIS_BLOCK_ADDR+3) = 3;
-// chunk 3: u16, u16
+__root const uint8_t MeerkatConfig_ADCCheck_Hysteresis_VRef_u8 @ (THIS_BLOCK_ADDR+2) = 10; 
+__root const uint8_t MeerkatConfig_ADCCheck_Hysteresis_Mux_u8 @ (THIS_BLOCK_ADDR+3) = 10;
+
+// chunk 3: u8, u8, u8, u8
 #undef THIS_BLOCK_ADDR
 #define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (3 * SHARED_CONFIG_ROM_BLOCK_SIZE))
-__root const uint16_t MeerkatConfig_ADCCheck_MinVref_u16 @ (THIS_BLOCK_ADDR+0) = 0x3100;
-__root const uint16_t MeerkatConfig_ADCCheck_MaxVref_u16 @ (THIS_BLOCK_ADDR+2) = 0x3300;
+__root const uint8_t MeerkatConfig_ADCCheck_Hysteresis_Shunt_current_u8 @ (THIS_BLOCK_ADDR+0) = 5;
+__root const uint8_t MeerkatConfig_ADCCheck_Hysteresis_Locked_Rotor_u8 @ (THIS_BLOCK_ADDR+1) = 5;
+__root const uint8_t MeerkatConfig_ADCCheck_Hysteresis_Coherence_u8 @ (THIS_BLOCK_ADDR+2) = 3; 
+__root const uint8_t MeerkatConfig_ADCCheck_Hysteresis_Over_Speed_u8 @ (THIS_BLOCK_ADDR+3) = 3;
+
 
 // - Address = ("shared_configuration_rom_start") + 0x10
 // chunk 4: u16, u16
 #undef THIS_BLOCK_ADDR
 #define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (4 * SHARED_CONFIG_ROM_BLOCK_SIZE))
-__root const uint16_t MeerkatConfig_ADCCheck_MinTemp_u16 @ (THIS_BLOCK_ADDR+0) = 0x0001;
-__root const uint16_t MeerkatConfig_ADCCheck_MaxTemp_u16 @ (THIS_BLOCK_ADDR+2) = 0xFFFE;
+__root const uint16_t MeerkatConfig_ADCCheck_MinVref_u16 @ (THIS_BLOCK_ADDR+0) = 0x0500;
+__root const uint16_t MeerkatConfig_ADCCheck_MaxVref_u16 @ (THIS_BLOCK_ADDR+2) = 0x0575;
+
 // chunk 5: u16, u16
 #undef THIS_BLOCK_ADDR
 #define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (5 * SHARED_CONFIG_ROM_BLOCK_SIZE))
-__root const uint16_t MeerkatConfig_ADCCheck_CurrentVarianceTolerance_u16 @ (THIS_BLOCK_ADDR+0) = 6000;
+__root const uint16_t MeerkatConfig_ADCCheck_CurrentVarianceTolerance_u16 @ (THIS_BLOCK_ADDR+0) = 3000;
 __root const uint16_t MeerkatConfig_ADCCheck_MultiplexerVarianceRequired_u16 @ (THIS_BLOCK_ADDR+2) = 0x00FF;
+
 // chunk 6: i16, i16
 #undef THIS_BLOCK_ADDR
 #define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (6 * SHARED_CONFIG_ROM_BLOCK_SIZE))
-__root const int16_t MeerkatConfig_ADCCheck_MinCurrent_i16 @ (THIS_BLOCK_ADDR+0) = -16000;
-__root const int16_t MeerkatConfig_ADCCheck_MaxCurrent_i16 @ (THIS_BLOCK_ADDR+2) =  16000;
-// chunk 7: u32
+//this value is the maximum rated current for the IGBT module in ADC counts
+__root const int16_t MeerkatConfig_ADCCheck_MaxRatedCurrent_i16 @ (THIS_BLOCK_ADDR+0) = 32000;
+//this value is the minimu rated speed for the motor * 0.8
+__root const int16_t MeerkatConfig_ADCCheck_MinRatedSpeed_i16 @ (THIS_BLOCK_ADDR+2) = 1296;  
+
+// chunk 7: float
 #undef THIS_BLOCK_ADDR
 #define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (7 * SHARED_CONFIG_ROM_BLOCK_SIZE))
-__root const uint32_t MeerkatConfig_ADCCheck_MinCurrentSampleSize_u32 @ (THIS_BLOCK_ADDR+0) = 65000; // 65000: stable at 30kHz PWM
-// - For ADC Coherence and Multiplexer Checks.
-// -- Safety Core Records Min's and Max's of each Current Phase for MeerkatConfig_ADCCheck_MinCurrentSampleSize_u32 samples.
-// --- Multiplexer Check Compares these values to V_REF
-// --- Coherence Check/ Output Phase Loss Check Compares these values to each other to ensure all phases are similar.
-// -- This parameter should be calibrated to enusure that we have at least one full electrical cycles worth of data.
-// --- When running at MeerkatConfig_ADCCoherence_MinSpeedRpm.
-// ---- PWM Frequency: 8000.0Hz
-// ----- One ADC Sample Every: 0.125ms
-// ------ Current Cycles Per Second @ 1rpm: 0.2 -> 40000.0 adc samples per current cycle
-// ------ Current Cycles Per Second @ 2rpm: 0.4 -> 20000.0 adc samples per current cycle
-// chunk 8: u32
-// - RAM Check compares two 512 Byte blocks fof RAM. If "LEN_OF_BLOCK" is 4, then this value should be 128 
+//this value is ((maxCurrent-minCurrent)/(minSpeed - maxSpeed)) where:
+// maxSpeed = eerkatConfig_ADCCheck_MaxRatedSpeed_i16
+// minSpeed = MeerkatConfig_ADCCheck_MinRatedSpeed_i16 * 0.8
+// maxCurrent = maxCurrentPhaseU_i16 * 1.1 when the motor is running at minSpeed = 10375.7 * 1.1 = 11413.3
+// minCurrent = maxCurrentPhaseU_i16 *1.1 when the motor is running at maxSpeed =  7984 * 1.1 = 8782.4
+__root const float MeerkatConfig_ADCCheck_CurrentSpeedSlope @ (THIS_BLOCK_ADDR+0) = -3.9; 
+
+// chunk 8: float
 #undef THIS_BLOCK_ADDR
 #define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (8 * SHARED_CONFIG_ROM_BLOCK_SIZE))
-__root const uint32_t MeerkatConfig_RAMCheck_NumBlocks_u32 @ (THIS_BLOCK_ADDR+0) = 4;
+//this value is (minCurrent - slope * minSpeed) where:
+// minCurrent = maxCurrentPhaseU_i16 + 15% when the motor is running at maxSpeed
+// slope = MeerkatConfig_ADCCheck_SpeedCurrentSlope
+// minSpeed = MeerkatConfig_ADCCheck_MinRatedSpeed_i16 *0.8
+__root const float MeerkatConfig_ADCCheck_SpeedCurrentYIntercept @ (THIS_BLOCK_ADDR+0) = 16472.1;
+
 // chunk 9: u32
-//__root const uint32_t MeerkatConfig_ROMCheck_BlocksPerIteration_u32 @ (SHARED_CONFIG_ROM_START+28) = 256; // 1.3ms execution time
 #undef THIS_BLOCK_ADDR
 #define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (9 * SHARED_CONFIG_ROM_BLOCK_SIZE))
-__root const uint32_t MeerkatConfig_ROMCheck_BlocksPerIteration_u32 @ (THIS_BLOCK_ADDR+0) = 16; // 16: 89us execution time 
-// chunk 10: u32
+__root const uint32_t MeerkatConfig_ADCCheck_MinCurrentSampleSize_u32 @ (THIS_BLOCK_ADDR+0) = 450;
+//>>> (1/(400/60.))/10 = 0.015ms >>>>> .015/(1/30000.) = 449.99
+
+// chunk 10: u32 
 #undef THIS_BLOCK_ADDR
 #define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (10 * SHARED_CONFIG_ROM_BLOCK_SIZE))
-__root const uint32_t MeerkatConfig_ROMCheck_AppStartAddress_u32 @ (THIS_BLOCK_ADDR+0) = 0x08000000;
-// chunk 11: u32
+__root const uint32_t MeerkatConfig_LockedRotorCheck_BemfDiff_u32 @ (THIS_BLOCK_ADDR+0) = 4500;
+// chunk 11: u32 
 #undef THIS_BLOCK_ADDR
 #define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (11 * SHARED_CONFIG_ROM_BLOCK_SIZE))
-__root const uint32_t MeerkatConfig_ROMCheck_AppEndAddress_u32 @ (THIS_BLOCK_ADDR+0) = 0x0800DFFC; // This should be the start address of the checksum
-// chunk 12: u8, ?, ?, ?
+__root const int32_t MeerkatConfig_OverSpeedCheck_MaxSpeed_u32 @ (THIS_BLOCK_ADDR+0) = 10000;
+// chunk 12: u32 
 #undef THIS_BLOCK_ADDR
 #define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (12 * SHARED_CONFIG_ROM_BLOCK_SIZE))
-__root const uint8_t MeerkatConfig_ROMCheck_Hysteresis_u8 @ (THIS_BLOCK_ADDR+0) = 3;
-__root const uint8_t MeerkatConfig_FaultClearTimeS_u8 @ (THIS_BLOCK_ADDR+1) = 0; // This is added to the min time RISK_ADDRESSED_STATE_MIN_TIMEOUT_MS
-__root const uint8_t MeerkatConfig_FaultClearLimit_u8 @ (THIS_BLOCK_ADDR+2) = 3; // number of times safety faults can clear before device reboots
-//__root const uint8_t Config_temp3_u8 @ (SHARED_CONFIG_ROM_START+51) = 3;
-// chunk 13: u32 //!error: Temporary position, should be moved by other ADCChecks
+__root const int32_t MeerkatConfig_OverSpeedCheck_MinSpeed_u32 @ (THIS_BLOCK_ADDR+0) = -10000;
+// chunk 13: u32 
 #undef THIS_BLOCK_ADDR
 #define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (13 * SHARED_CONFIG_ROM_BLOCK_SIZE))
-__root const uint32_t MeerkatConfig_LockedRotorCheck_BemfDiff_u32 @ (THIS_BLOCK_ADDR+0) = 3000;
-// chunk 14: u32 //!error: Temporary position, should be moved by other ADCChecks
-#undef THIS_BLOCK_ADDR
-#define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (14 * SHARED_CONFIG_ROM_BLOCK_SIZE))
-__root const int32_t MeerkatConfig_OverSpeedCheck_MaxSpeed_u32 @ (THIS_BLOCK_ADDR+0) = 10000;
-// chunk 15: u32 //!error: Temporary position, should be moved by other ADCChecks
-#undef THIS_BLOCK_ADDR
-#define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (15 * SHARED_CONFIG_ROM_BLOCK_SIZE))
-__root const int32_t MeerkatConfig_OverSpeedCheck_MinSpeed_u32 @ (THIS_BLOCK_ADDR+0) = -10000;
-// chunk 16: u32 //!error: Temporary position, should be moved by other ADCChecks
-#undef THIS_BLOCK_ADDR
-#define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (16 * SHARED_CONFIG_ROM_BLOCK_SIZE))
 __root const uint32_t MeerkatConfig_OverSpeedCheck_MinTorque_u32 @ (THIS_BLOCK_ADDR+0) = 800; 
 // - if above this limit, the device is 'loaded' and the 'no load' speed check does not execute
-// chunk 17: u16, u16 // !error: Temporary position, should be moved by other Coherence Checks
+// chunk 14: u16, u16 
 #undef THIS_BLOCK_ADDR
-#define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (17 * SHARED_CONFIG_ROM_BLOCK_SIZE))
+#define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (14 * SHARED_CONFIG_ROM_BLOCK_SIZE))
 __root const uint16_t MeerkatConfig_ADCCoherence_MinSpeedRpm @ (THIS_BLOCK_ADDR+0) = 10; 
+__root const uint16_t MeerkatConfig_Unused_u16 @ (THIS_BLOCK_ADDR+2) = 0; 
 // - if speed is below this limit, safety core will not run coherence checks.
 // -- This is implemented to avoid adjusting to startup scenarios where running at less than 1rpm where hundreds of thousands
 // --- of samples need to be considered in a single decision.
 // __root const uint16_t MeerkatConfig_ @ (THIS_BLOCK_ADDR+2) = 0; 
+
+
+// chunk 15: u32
+// - RAM Check compares two 512 Byte blocks fof RAM. If "LEN_OF_BLOCK" is 4, then this value should be 128 
+#undef THIS_BLOCK_ADDR
+#define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (15 * SHARED_CONFIG_ROM_BLOCK_SIZE))
+__root const uint32_t MeerkatConfig_RAMCheck_NumBlocks_u32 @ (THIS_BLOCK_ADDR+0) = 4;
+// chunk 16: u32
+//__root const uint32_t MeerkatConfig_ROMCheck_BlocksPerIteration_u32 @ (SHARED_CONFIG_ROM_START+28) = 256; // 1.3ms execution time
+#undef THIS_BLOCK_ADDR
+#define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (16 * SHARED_CONFIG_ROM_BLOCK_SIZE))
+__root const uint32_t MeerkatConfig_ROMCheck_BlocksPerIteration_u32 @ (THIS_BLOCK_ADDR+0) = 16; // 16: 89us execution time 
+// chunk 17: u32
+#undef THIS_BLOCK_ADDR
+#define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (17 * SHARED_CONFIG_ROM_BLOCK_SIZE))
+__root const uint32_t MeerkatConfig_ROMCheck_AppStartAddress_u32 @ (THIS_BLOCK_ADDR+0) = 0x08000000;
+// chunk 18: u32
+#undef THIS_BLOCK_ADDR
+#define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (18 * SHARED_CONFIG_ROM_BLOCK_SIZE))
+__root const uint32_t MeerkatConfig_ROMCheck_AppEndAddress_u32 @ (THIS_BLOCK_ADDR+0) = 0x0800DFFC; // This should be the start address of the checksum
+// chunk 19: u8, u8, u8, u8
+#undef THIS_BLOCK_ADDR
+#define THIS_BLOCK_ADDR (SHARED_CONFIG_ROM_LAST_BLOCK_START - (19 * SHARED_CONFIG_ROM_BLOCK_SIZE))
+__root const uint8_t MeerkatConfig_ROMCheck_Hysteresis_u8 @ (THIS_BLOCK_ADDR+0) = 3;
+__root const uint8_t MeerkatConfig_FaultClearTimeS_u8 @ (THIS_BLOCK_ADDR+1) = 10; // This is added to the min time RISK_ADDRESSED_STATE_MIN_TIMEOUT_MS
+__root const uint8_t MeerkatConfig_FaultClearLimit_u8 @ (THIS_BLOCK_ADDR+2) = 3; // number of times safety faults can clear before device reboots
+__root const uint8_t MeerkatConfig_Unused_u8 @ (THIS_BLOCK_ADDR+3) = 0;
+
+ 

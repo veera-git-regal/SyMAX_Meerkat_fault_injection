@@ -30,12 +30,22 @@
 //#if(SYMAX_SRI_MOTOR == DQALL)
 
 // No Harmonics
-/****/
+/***
 #define HARMONIC_INJ_AMPLITUDE_DEFAULTS 	{0   ,0,0,0,0,0,0,0}
 #define HARMONIC_INJ_MULTIPLIER_DEFAULTS 	{0    ,0,0,0,0,0,0,0}
 #define HARMONIC_INJ_ANGLE_DEFAULTS 		{0,0,0,0,0,0,0,0}
 #define HARMONIC_INJ_INVERSION_DEFAULTS 	{0     ,0,0,0,0,0,0,0}
 #define HARMONIC_INJ_MIN_SPEED_DEFAULTS 	{0 ,0,0,0,0,0,0,0} // minimum speed values to apply harmonic injection algorithm
+#define HARMONIC_INJ_MAX_SPEED_DEFAULTS 	{2250  ,2250, 2250, 2250, 2250, 2250, 2250, 2250} // maximum speed values to apply harmonic injection algorithm
+***/
+
+// DQ013 02/18/2022
+/****/
+#define HARMONIC_INJ_AMPLITUDE_DEFAULTS 	{360   ,0,0,0,0,0,0,0}
+#define HARMONIC_INJ_MULTIPLIER_DEFAULTS 	{12    ,0,0,0,0,0,0,0}
+#define HARMONIC_INJ_ANGLE_DEFAULTS 		{-14000,0,0,0,0,0,0,0}
+#define HARMONIC_INJ_INVERSION_DEFAULTS 	{0     ,0,0,0,0,0,0,0}
+#define HARMONIC_INJ_MIN_SPEED_DEFAULTS 	{0     ,0,0,0,0,0,0,0} // minimum speed values to apply harmonic injection algorithm
 #define HARMONIC_INJ_MAX_SPEED_DEFAULTS 	{2250  ,2250, 2250, 2250, 2250, 2250, 2250, 2250} // maximum speed values to apply harmonic injection algorithm
 /****/
 

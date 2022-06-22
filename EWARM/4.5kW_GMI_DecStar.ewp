@@ -2,7 +2,7 @@
 <project>
     <fileVersion>3</fileVersion>
     <configuration>
-        <name>1.3kW_GMI</name>
+        <name>4.5kW_GMI_DecStar</name>
         <toolchain>
             <name>ARM</name>
         </toolchain>
@@ -16,15 +16,15 @@
                 <debug>1</debug>
                 <option>
                     <name>ExePath</name>
-                    <state>1.3kW_GMI/Exe</state>
+                    <state>4.5kW_GMI_DecStar/Exe</state>
                 </option>
                 <option>
                     <name>ObjPath</name>
-                    <state>1.3kW_GMI/Obj</state>
+                    <state>4.5kW_GMI_DecStar/Obj</state>
                 </option>
                 <option>
                     <name>ListPath</name>
-                    <state>1.3kW_GMI/List</state>
+                    <state>4.5kW_GMI_DecStar/List</state>
                 </option>
                 <option>
                     <name>GEndianMode</name>
@@ -304,7 +304,7 @@
                 </option>
                 <option>
                     <name>IExtraOptionsCheck</name>
-                    <state>1</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>IExtraOptions</name>
@@ -676,7 +676,7 @@
                 </option>
                 <option>
                     <name>OOCOutputFile</name>
-                    <state>1.3kW_GMI.hex</state>
+                    <state>4.5kW_GMI_DecStar.hex</state>
                 </option>
                 <option>
                     <name>OOCCommandLineProducer</name>
@@ -707,7 +707,7 @@
             <archiveVersion>1</archiveVersion>
             <data>
                 <prebuild></prebuild>
-                <postbuild>"$EXE_DIR$\generate_crc.bat" "$TOOLKIT_DIR$" "$TARGET_PATH$"</postbuild>
+                <postbuild></postbuild>
             </data>
         </settings>
         <settings>
@@ -731,7 +731,7 @@
                 </option>
                 <option>
                     <name>IlinkOutputFile</name>
-                    <state>1.3kW_GMI.out</state>
+                    <state>4.5kW_GMI_DecStar.out</state>
                 </option>
                 <option>
                     <name>IlinkDebugInfoEnable</name>
@@ -795,7 +795,7 @@
                 </option>
                 <option>
                     <name>IlinkIcfFile</name>
-                    <state>$PROJ_DIR$\stm32f302x8_flash_with_meerkat.icf</state>
+                    <state>$PROJ_DIR$/stm32f302x8_flash.icf</state>
                 </option>
                 <option>
                     <name>IlinkIcfFileSlave</name>
@@ -843,7 +843,7 @@
                 </option>
                 <option>
                     <name>IlinkAdditionalLibs</name>
-                    <state>$PROJ_DIR$\meerkat_safety.symbols</state>
+                    <state>C:\Project_data\ECM_data\computime_Drive_App\GMI_Drive_Safetycore\symax_sri_drive-0d3e985a6_Meerkat\GMI_Motor_Drive\SafetyCore\EWARM\meerkat_safety\Exe\meerkat_safety.symbols</state>
                 </option>
                 <option>
                     <name>IlinkOverrideProgramEntryLabel</name>
@@ -1099,7 +1099,7 @@
                 <name>$PROJ_DIR$\..\Src\dac_ui.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\Src\harmonic_injection.c</name>
+                <name>$PROJ_DIR$\..\Src\interrupt_wrappers.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Src\main.c</name>
@@ -1246,13 +1246,19 @@
                 <name>$PROJ_DIR$\..\FlexMouse\Drivers\driver_i2c.c</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\..\FlexMouse\Drivers\driver_i2c.h</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\FlexMouse\Drivers\driver_rtc.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\FlexMouse\Drivers\driver_usart1.c</name>
+                <name>$PROJ_DIR$\..\FlexMouse\Drivers\driver_usart2.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\FlexMouse\Drivers\driver_usart1.h</name>
+                <name>$PROJ_DIR$\..\FlexMouse\Drivers\driver_usart2.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\FlexMouse\Drivers\hardware_config.h</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\FlexMouse\Drivers\module_err_logHande.c</name>
@@ -1267,13 +1273,16 @@
                 <name>$PROJ_DIR$\..\FlexMouse\Drivers\module_i2c.c</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\..\FlexMouse\Drivers\module_i2c.h</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\FlexMouse\Drivers\module_rtc.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\FlexMouse\Drivers\module_usart1.c</name>
+                <name>$PROJ_DIR$\..\FlexMouse\Drivers\module_usart2.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\FlexMouse\Drivers\module_usart1.h</name>
+                <name>$PROJ_DIR$\..\FlexMouse\Drivers\module_usart2.h</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\FlexMouse\Drivers\zz_module_flash.h</name>
@@ -1288,10 +1297,19 @@
                 <name>$PROJ_DIR$\..\FlexMouse\Features\module_app.h</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\..\FlexMouse\Features\module_dynamic.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\FlexMouse\Features\module_dynamic.h</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\FlexMouse\Features\module_ecm_icl.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\FlexMouse\Features\module_ecm_icl.h</name>
+                <name>$PROJ_DIR$\..\FlexMouse\Features\module_EEP.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\FlexMouse\Features\module_EEP.h</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\FlexMouse\Features\module_meerkat_interface.c</name>
@@ -1303,10 +1321,22 @@
                 <name>$PROJ_DIR$\..\FlexMouse\Features\module_meerkat_shared_rom.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\FlexMouse\Features\module_voltage_doubler.c</name>
+                <name>$PROJ_DIR$\..\FlexMouse\Features\module_modbus.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\FlexMouse\Features\module_voltage_doubler.h</name>
+                <name>$PROJ_DIR$\..\FlexMouse\Features\module_modbus.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\FlexMouse\Features\module_modbus_drive_map.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\FlexMouse\Features\module_test.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\FlexMouse\Features\module_test.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\FlexMouse\Features\module_voltage_doubler.c</name>
             </file>
         </group>
         <group>
@@ -1359,6 +1389,12 @@
             <file>
                 <name>$PROJ_DIR$\..\FlexMouse\Motor\regal_mc_lib.h</name>
             </file>
+            <file>
+                <name>$PROJ_DIR$\..\FlexMouse\Motor\regal_mc_settings.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\FlexMouse\Motor\regal_mc_settings.h</name>
+            </file>
         </group>
         <group>
             <name>Regal</name>
@@ -1367,45 +1403,6 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\FlexMouse\Regal\typedef.h</name>
-            </file>
-        </group>
-        <group>
-            <name>UniversalProtocol</name>
-            <file>
-                <name>$PROJ_DIR$\..\FlexMouse\UniversalProtocol\module_AutoAck.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\FlexMouse\UniversalProtocol\module_AutoAck.h</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\FlexMouse\UniversalProtocol\module_DebugMCmd.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\FlexMouse\UniversalProtocol\module_EEPCmd.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\FlexMouse\UniversalProtocol\module_FlashRegisterCmd.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\FlexMouse\UniversalProtocol\module_FlashRegisterCmd.h</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\FlexMouse\UniversalProtocol\module_FlashUpdateCmd.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\FlexMouse\UniversalProtocol\module_FlashUpdateCmd.h</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\FlexMouse\UniversalProtocol\module_ReplyCmd.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\FlexMouse\UniversalProtocol\module_ReplyCmd.h</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\FlexMouse\UniversalProtocol\module_ShortCmd.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\FlexMouse\UniversalProtocol\module_ShortCmd.h</name>
             </file>
         </group>
     </group>
@@ -1487,7 +1484,4 @@
             </file>
         </group>
     </group>
-    <file>
-        <name>$PROJ_DIR$\..\vEE_climate.txt</name>
-    </file>
 </project>

@@ -24,7 +24,7 @@ static uint8_t *RingBuf_GetPhysicalAddressOfHeadPlusOffset(Ring_Buf_Handle this_
 static uint8_t RingBuf_IsEmpty(Ring_Buf_Handle this_ring_buf_u32);
 static uint8_t RingBuf_IsFull(Ring_Buf_Handle this_ring_buf_u32);
 static int32_t RingBuf_CalculateAvailableSpace(Ring_Buf_Handle this_ring_buf_u32);
-static uint8_t *RingBuf_SetPointerToRingBuf(Ring_Buf_Handle this_ring_buf_u32, uint8_t *p_ringBuf_u8);
+//static uint8_t *RingBuf_SetPointerToRingBuf(Ring_Buf_Handle this_ring_buf_u32, uint8_t *p_ringBuf_u8);
 static uint8_t RingBuf_SetUsedNumOfElements(Ring_Buf_Handle this_ring_buf_u32, uint32_t usedNumOfElements_s32);
 static uint8_t RingBuf_GetTotalNumOfElements(Ring_Buf_Handle this_ring_buf_u32);
 static uint8_t RingBuf_SetTotalNumOfElements(Ring_Buf_Handle this_ring_buf_u32, uint32_t totalNumOfElements_u32);
@@ -37,9 +37,10 @@ static uint8_t RingBuf_SetUserListSize(Ring_Buf_Handle this_ring_buf_u32, uint8_
 /* Public Functions ------------------------------------------------------------------------------------------------------------*/
 void RingBuf_Initialize(Ring_Buf_Handle this_ring_buf_u32, uint8_t owner_u8, uint8_t ring_buf_size_u8,
                            uint8_t access_mode_u8, uint8_t *p_user_list_u8, uint8_t user_list_size_u8) {
-    uint8_t* tmpryBuf;                                                          //check any Heap memory alocation error                 //house keeping code
+/*    uint8_t* tmpryBuf;                                                          //check any Heap memory alocation error                 //house keeping code
     if( (tmpryBuf = malloc(ring_buf_size_u8)) == NULL) Ring_mallocError++;      //check any Heap memory alocation error                 //house keeping code
     RingBuf_SetPointerToRingBuf(this_ring_buf_u32, tmpryBuf);
+*/
     RingBuf_SetValueOfHead(this_ring_buf_u32, 0);
     RingBuf_SetValueOfTail(this_ring_buf_u32, 0);
     RingBuf_SetUsedNumOfElements(this_ring_buf_u32, 0);
@@ -353,26 +354,22 @@ static uint8_t RingBuf_IsFull(Ring_Buf_Handle this_ring_buf_u32) {
   *                                 of, or behind the tail. Automatically updates usedNumOfElements_s32 when called.
   * @param   this_ring_buf_u32   The ring buffer handle referencing the ring buffer that the function must operate on.
   * @return  Returns the number of unused elements in the ring buffer instance.
-  * @Tested by PL 27OCT2020
   ********************************************************************************************************************************
   */
 static int32_t RingBuf_CalculateAvailableSpace(Ring_Buf_Handle this_ring_buf_u32) {
-  
     int32_t tail_minus_head = RingBuf_GetValueOfTail(this_ring_buf_u32) - RingBuf_GetValueOfHead(this_ring_buf_u32);
-      if (tail_minus_head > 0) {
-          RingBuf_SetUsedNumOfElements(this_ring_buf_u32, tail_minus_head);
-          return RingBuf_GetTotalNumOfElements(this_ring_buf_u32) - tail_minus_head;
-      } 
-      if(tail_minus_head < 0){
-          RingBuf_SetUsedNumOfElements(this_ring_buf_u32, RingBuf_GetTotalNumOfElements(this_ring_buf_u32) - abs(tail_minus_head));
-          return abs(tail_minus_head);
-      }
-      //tail_minus_head == 0
-      RingBuf_SetUsedNumOfElements(this_ring_buf_u32, 0);
-      return RingBuf_GetTotalNumOfElements(this_ring_buf_u32);
+    if (tail_minus_head > 0) {
+        RingBuf_SetUsedNumOfElements(this_ring_buf_u32, tail_minus_head);
+        return RingBuf_GetTotalNumOfElements(this_ring_buf_u32) - tail_minus_head;
+    } 
+    if(tail_minus_head < 0){
+        RingBuf_SetUsedNumOfElements(this_ring_buf_u32, RingBuf_GetTotalNumOfElements(this_ring_buf_u32) - abs(tail_minus_head));
+        return abs(tail_minus_head);
+    }
+    //tail_minus_head == 0
+    RingBuf_SetUsedNumOfElements(this_ring_buf_u32, 0);
+    return RingBuf_GetTotalNumOfElements(this_ring_buf_u32);
 }
-
-
 
 /**
   ********************************************************************************************************************************
@@ -383,9 +380,9 @@ static int32_t RingBuf_CalculateAvailableSpace(Ring_Buf_Handle this_ring_buf_u32
   * @return  Returns 
   ********************************************************************************************************************************
   */
-static uint8_t *RingBuf_SetPointerToRingBuf(Ring_Buf_Handle this_ring_buf_u32, uint8_t *p_ringBuf_u8) {
-    return (*this_ring_buf_u32).p_ringBuf_u8 = p_ringBuf_u8;
-}
+//static uint8_t *RingBuf_SetPointerToRingBuf(Ring_Buf_Handle this_ring_buf_u32, uint8_t *p_ringBuf_u8) {
+//    return (*this_ring_buf_u32).p_ringBuf_u8 = p_ringBuf_u8;
+//}
 
 /**
   ********************************************************************************************************************************

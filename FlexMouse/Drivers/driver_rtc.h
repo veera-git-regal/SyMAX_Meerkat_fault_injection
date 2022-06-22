@@ -16,9 +16,6 @@
 #include "stm32f3xx_ll_rtc.h" 
 #include "typedef.h"
 
-// #include "scheduler.h"
-// #include "sequential_memory.h"
-// #include "structured_memory.h"
 
 /* Content ---------------------------------------------------------------------------------------------------------------------*/
 #ifdef __cplusplus

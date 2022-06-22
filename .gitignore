@@ -1,65 +1,26 @@
-
-# Created by https://www.toptal.com/developers/gitignore/api/iar
-# Edit at https://www.toptal.com/developers/gitignore?templates=iar
-
-### IAR ###
-# Compiled binaries
+*.wsdt
+*.dep
+*.lst
+*.pbi
 *.o
-*.bin
-*.elf
+*.xcl
 *.hex
+*.browse
+*.pbd
 *.map
 *.out
-*.obj
-*.xcl
-*.ninja_deps
 *.ninja_log
-*.ninja
 *.pbw
-*.scc
-*.ewt
-*.lst
-
-# Trash
+*.bat
+*.ioc
+*.wb
+*.settings
+*.wb_def
+*.stmcx
+*.log
+*.bat
+*.ps1
+*.sim
+*.dbgdt
+*.dnx
 *.bak
-thumbs.db
-*.~*
-
-# IAR Settings
-**/settings/*.crun
-**/settings/*.dbgdt
-**/settings/*.cspy
-**/settings/*.cspy.*
-**/settings/*.xcl
-**/settings/*.dni
-**/settings/*.wsdt
-**/settings/*.wspos
-
-# IAR Debug Exe
-**/Exe/*.sim
-
-# IAR Debug Obj
-**/Obj/*.pbd
-**/Obj/*.pbd.*
-**/Obj/*.pbi
-**/Obj/*.pbi.*
-
-# IAR project "Debug" directory
-Debug/
-
-# IAR project "Release" directory
-Release/
-
-# IAR project settings directory
-settings/
-
-# IAR backup files
-Backup*
-
-# IAR .dep files
-*.dep
-
-# VS Code Settings Files (for users of VS Code)
-.vscode/
-
-# End of https://www.toptal.com/developers/gitignore/api/iar

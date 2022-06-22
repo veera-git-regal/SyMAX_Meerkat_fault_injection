@@ -103,6 +103,7 @@ const int16_t hSin_Cos_Table[256] = SIN_COS_TABLE;
 __attribute__( ( section ( ".ccmram" ) ) )
 #endif
 #endif
+
 /**
   * @brief  This function transforms stator values a and b (which are
   *         directed along axes each displaced by 120 degrees) into values
@@ -112,6 +113,88 @@ __attribute__( ( section ( ".ccmram" ) ) )
   * @param  Input: stator values a and b in ab_t format
   * @retval Stator values alpha and beta in alphabeta_t format
   */
+volatile uint8_t Test_Var,Test_Var1,I_a_Peak_Cntr,I_b_Peak_Cntr;
+volatile uint16_t I_a_Peak,I_b_Peak;
+volatile uint64_t I_a_Peak_Buff,I_b_Peak_Buff;
+
+__weak void Get_Peak_Current( int16_t hAngle,ab_t Input )
+{
+//int32_t shindex;
+  uint16_t uhindex;
+  /* 10 bit index computation  */
+  uhindex = ( uint16_t )(( ( int32_t )32768 + ( int32_t )hAngle )>> 6);
+ // uhindex = ( uint16_t )shindex ; //This is equal to devide by 64
+ // uhindex >>= ( uint16_t )6;  
+  int16_t Direction = MC_GetImposedDirectionMotor1();
+  switch ( ( uint16_t )( uhindex ) & SIN_MASK )
+  {
+    case U0_90:  
+      {
+        Test_Var1=0;
+        if(Test_Var==0){  //0Degree //AntiClock_wise
+          Test_Var=1;   
+          if (Direction == 1){                 
+            I_a_Peak_Buff+=Input.a;
+            I_a_Peak_Cntr++;
+          }
+        }
+      }
+    break;
+    case U90_180:  
+      {
+        if(Test_Var1==0){          
+          if (Direction == 1){
+            if(uhindex>=U90_180+85){  //120 Degree  //AntiClock_wise               
+                Test_Var1=1; 
+                I_b_Peak_Buff+=Input.b;
+                I_b_Peak_Cntr++;          
+             }      
+          }else{//CW direction 180 degree
+            Test_Var1=1;        
+            I_a_Peak_Buff+=Input.a;
+            I_a_Peak_Cntr++;
+          }
+        }
+      }
+    break;
+    case U180_270:
+      {
+        Test_Var1=0;     
+        Test_Var=0; 
+      }
+    break;
+
+    case U270_360:
+      {
+        if (Direction != 1){         
+          if(Test_Var1==0){
+            if(uhindex<=U270_360+85){  //300 Degree  //Clock_wise
+              Test_Var1=1; 
+              I_b_Peak_Buff+=Input.b;
+              I_b_Peak_Cntr++;           
+            }  
+          } 
+        }
+      }
+    break;
+    default:
+      {
+      Test_Var=0;
+      Test_Var1=0; 
+      }
+    break;
+  }
+  if(I_a_Peak_Cntr>=16){
+    I_a_Peak_Cntr=0;
+    I_a_Peak=I_a_Peak_Buff>>4;
+    I_a_Peak_Buff=0;
+  }
+  if(I_b_Peak_Cntr>=16){
+    I_b_Peak_Cntr=0;
+    I_b_Peak=I_b_Peak_Buff>>4;
+    I_b_Peak_Buff=0;
+  }
+}
 __weak alphabeta_t MCM_Clarke( ab_t Input  )
 {
   alphabeta_t Output;
@@ -164,13 +247,7 @@ __weak alphabeta_t MCM_Clarke( ab_t Input  )
   return ( Output );
 }
 
-#if defined (CCMRAM)
-#if defined (__ICCARM__)
-#pragma location = ".ccmram"
-#elif defined (__CC_ARM) || defined(__GNUC__)
-__attribute__( ( section ( ".ccmram" ) ) )
-#endif
-#endif
+
 /**
   * @brief  This function transforms stator values alpha and beta, which
   *         belong to a stationary qd reference frame, to a rotor flux

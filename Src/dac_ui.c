@@ -64,13 +64,15 @@ __weak void DAC_Init(UI_Handle_t *pHandle)
   */
 __weak void DAC_Exec(UI_Handle_t *pHandle)
 {
-  DAC_UI_Handle_t *pDacHandle = (DAC_UI_Handle_t *)pHandle;
-  MC_Protocol_REG_t bCh_var;
-  
-  bCh_var = pDacHandle->bChannel_variable[DAC_CH0];
-  LL_DAC_ConvertData12LeftAligned(DAC1, LL_DAC_CHANNEL_1,
-                                  DACOFF + ((int16_t)UI_GetReg(pHandle,bCh_var,MC_NULL)));
-  LL_DAC_TrigSWConversion(DAC1, LL_DAC_CHANNEL_1);
+//  DAC_UI_Handle_t *pDacHandle = (DAC_UI_Handle_t *)pHandle;
+//  MC_Protocol_REG_t bCh_var;
+//  uint8_t success;
+//  uint8_t outBuff_tmpry[8];
+//  
+//  bCh_var = pDacHandle->bChannel_variable[DAC_CH0];
+////  LL_DAC_ConvertData12LeftAligned(DAC1, LL_DAC_CHANNEL_1, DACOFF + ((int16_t)UI_GetReg(pHandle,bCh_var,MC_NULL)));
+//  LL_DAC_ConvertData12LeftAligned(DAC1, LL_DAC_CHANNEL_1, DACOFF + ((int16_t)DebugMRegRd((uint8_t) bCh_var, &success, outBuff_tmpry)));
+//  LL_DAC_TrigSWConversion(DAC1, LL_DAC_CHANNEL_1);
 }
 
 /**

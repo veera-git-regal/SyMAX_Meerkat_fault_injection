@@ -1061,7 +1061,7 @@ __weak uint16_t R3_1_IsOverCurrentOccurred( PWMC_Handle_t * pHdl )
   if ( pHandle->OverVoltageFlag == true )
   {
     retVal = MC_OVER_VOLT;
-	pHandle->OverVoltageFlag = false;
+    pHandle->OverVoltageFlag = false;
   }
 
   if ( pHandle->OverCurrentFlag == true )

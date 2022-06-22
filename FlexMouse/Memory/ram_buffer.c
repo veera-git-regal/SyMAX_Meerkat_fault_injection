@@ -17,7 +17,7 @@
 /* Content ---------------------------------------------------------------------------------------------------------------------*/
 
 /* Private Function Prototypes -------------------------------------------------------------------------------------------------*/
-static uint8_t *RamBuf_SetPointerToRamBuf(Ram_Buf_Handle this_ram_buf_u32, uint8_t *p_RamBuf_u8);
+//static uint8_t *RamBuf_SetPointerToRamBuf(Ram_Buf_Handle this_ram_buf_u32, uint8_t *p_RamBuf_u8);
 static uint8_t RamBuf_GetTotalNumOfElements(Ram_Buf_Handle this_ram_buf_u32);
 static uint8_t RamBuf_SetTotalNumOfElements(Ram_Buf_Handle this_ram_buf_u32, uint32_t totalNumOfElements_u32);
 static uint8_t RamBuf_SetAccessMode(Ram_Buf_Handle this_ram_buf_u32, uint8_t access_mode_u8);
@@ -27,9 +27,10 @@ static uint8_t RamBuf_SetUserListSize(Ram_Buf_Handle this_ram_buf_u32, uint8_t u
 /* Public Functions ------------------------------------------------------------------------------------------------------------*/
 void RamBuf_Initialize(Ram_Buf_Handle this_ram_buf_u32, uint8_t owner_u8, uint8_t ram_buf_size_u8,
                           uint8_t access_mode_u8, uint8_t *p_user_list_u8, uint8_t user_list_size_u8) {
-    uint8_t* tmpryBuf;                                                                  //check any Heap memory alocation error                 //house keeping code
+/*    uint8_t* tmpryBuf;                                                                  //check any Heap memory alocation error                 //house keeping code
     if( (tmpryBuf = malloc(ram_buf_size_u8)) == NULL) Ram_mallocError++;                //check any Heap memory alocation error                 //house keeping code
     RamBuf_SetPointerToRamBuf(this_ram_buf_u32, tmpryBuf);
+*/
     RamBuf_SetOwner(this_ram_buf_u32, owner_u8);
     RamBuf_SetAccessMode(this_ram_buf_u32, access_mode_u8);
     RamBuf_SetUserList(this_ram_buf_u32, p_user_list_u8);
@@ -74,9 +75,9 @@ uint8_t RamBuf_SetProcessInstanceIndex(Ram_Buf_Handle this_ram_buf_u32, uint8_t 
   * @return  Returns 
   ********************************************************************************************************************************
   */
-static uint8_t *RamBuf_SetPointerToRamBuf(Ram_Buf_Handle this_ram_buf_u32, uint8_t *p_ramBuf_u8) {
-    return (*this_ram_buf_u32).p_ramBuf_u8 = p_ramBuf_u8;
-}
+//static uint8_t *RamBuf_SetPointerToRamBuf(Ram_Buf_Handle this_ram_buf_u32, uint8_t *p_ramBuf_u8) {
+//    return (*this_ram_buf_u32).p_ramBuf_u8 = p_ramBuf_u8;
+//}
 
 /**
   ********************************************************************************************************************************

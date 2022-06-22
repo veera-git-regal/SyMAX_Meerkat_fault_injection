@@ -131,7 +131,6 @@ uint16_t MC_GetCurrentFaultsMotor1(void);
 /* returns the current state of Motor 1 state machine */
 State_t  MC_GetSTMStateMotor1(void);
 
-extern volatile uint16_t meerkat_fault_occured;
 /**
   * @}
   */

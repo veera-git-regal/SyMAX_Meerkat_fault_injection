@@ -24,7 +24,6 @@
 #define eepromSyncChr 0x02 // sync byte form eeprom frame (0x02 start of text)
 #define eepromEndSyncChr 0x03  // end sync byte form eeprom frame (0x03 end of text)
 #define DATLOGGER_HEADER_SIZE 0x0C
-#define eepromInstall 1         //if no EEprom installed, please comment out this line
 
 enum{ /** @caution please don't change the number to the items already with the number 
                    assignment for special arrangement have been make for these parameters **/
@@ -127,24 +126,22 @@ enum{ /** @caution please don't change the number to the items already with the 
 #define  logDatAddr_STLibSoftwareError               Idfy_logDatAddr_STLibSoftwareError                 * 2	 	  //uint16_t                                         
 #define  logDatAddr_FlexMouseModuleBufferOverflow    Idfy_logDatAddr_FlexMouseModuleBufferOverflow      * 2               //uint16_t                                   
 #define  logDatAddr_FlexMouseFlashUpdateError        Idfy_logDatAddr_FlexMouseFlashUpdateError      	* 2	  	  //uint16_t                                     
-#define  logDatAddr_FlexMouseModuleExeTimeLimit      Idfy_logDatAddr_FlexMouseModuleExeTimeLimit     	* 2	  	  //uint16_t        
-
+#define  logDatAddr_FlexMouseModuleExeTimeLimit      Idfy_logDatAddr_FlexMouseModuleExeTimeLimit     	* 2	  	  //uint16_t                                     
+             
 #define  logDatAddr_EEPromEraseAll_0                 Idfy_logDatAddr_EEPromEraseAll_0                   * 2               //uint16_t    
-#define  logDatAddr_EEPromEraseAll_1                 Idfy_logDatAddr_EEPromEraseAll_1                   * 2               //uint16_t                 
+#define  logDatAddr_EEPromEraseAll_1                 Idfy_logDatAddr_EEPromEraseAll_1                   * 2               //uint16_t   
 
-#define eepromInstall 1
 /* Content ---------------------------------------------------------------------------------------------------------------------*/
-
 int8_t I2C_Write(uint16_t writeAddr,uint8_t* writeBuf, uint8_t NumOfBytes);
 void I2C_write_2Page(uint16_t writeFirstAddr, uint16_t writeSecondAddr, uint8_t* writeBuf, uint8_t NumOfBytes);
 uint8_t* readBlockDat(uint16_t addr, uint8_t len);
 
-//uint8_t* readBlockDat(uint16_t addr, uint8_t len);
 int8_t  writeBlockDat(uint16_t addr, uint8_t *writeBuf, uint8_t len);
 uint16_t  writeDynFrame(uint8_t * writeBuf, uint16_t writeLen);
 int16_t  readDynFrame(uint16_t addr, uint8_t* readBuf);                //Read the first frame from 'addr' into 'readBuf' 
 void EEprom_EraseAll(void);
 void EEprom_RegisterUpdate(uint16_t RegisterNum);
+uint8_t I2CIsReady( void );
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

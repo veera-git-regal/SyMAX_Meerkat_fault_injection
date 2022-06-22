@@ -31,8 +31,6 @@
 #include "mc_type.h"
 #include "mc_interface.h"
 #include "mc_tuning.h"
-#include "state_machine.h"
-//#include "UID.h"
 
 /** @addtogroup MCSDK
   * @{
@@ -50,7 +48,7 @@
  */
 typedef enum
 {
-  MC_PROTOCOL_REG_TARGET_MOTOR,          /* 0   */
+  MC_PROTOCOL_REG_TARGET_MOTOR,          /* 0   */      /** not used **/
   MC_PROTOCOL_REG_FLAGS,                 /* 1   */
   MC_PROTOCOL_REG_STATUS,                /* 2   */
   MC_PROTOCOL_REG_CONTROL_MODE,          /* 3   */
@@ -68,8 +66,8 @@ typedef enum
   MC_PROTOCOL_REG_FLUX_KD,               /* 15  */
   MC_PROTOCOL_REG_OBSERVER_C1,           /* 16  */
   MC_PROTOCOL_REG_OBSERVER_C2,           /* 17  */
-  MC_PROTOCOL_REG_OBSERVER_CR_C1,        /* 18  */
-  MC_PROTOCOL_REG_OBSERVER_CR_C2,        /* 19  */
+  MC_PROTOCOL_REG_OBSERVER_CR_C1,        /* 18  */      /** not used **/
+  MC_PROTOCOL_REG_OBSERVER_CR_C2,        /* 19  */      /** not used **/
   MC_PROTOCOL_REG_PLL_KI,                /* 20  */
   MC_PROTOCOL_REG_PLL_KP,                /* 21  */
   MC_PROTOCOL_REG_FLUXWK_KP,             /* 22  */
@@ -105,12 +103,12 @@ typedef enum
   MC_PROTOCOL_REG_OBS_I_BETA,            /* 52  */
   MC_PROTOCOL_REG_OBS_BEMF_ALPHA,        /* 53  */
   MC_PROTOCOL_REG_OBS_BEMF_BETA,         /* 54  */
-  MC_PROTOCOL_REG_OBS_CR_EL_ANGLE,       /* 55  */
-  MC_PROTOCOL_REG_OBS_CR_ROT_SPEED,      /* 56  */
-  MC_PROTOCOL_REG_OBS_CR_I_ALPHA,        /* 57  */
-  MC_PROTOCOL_REG_OBS_CR_I_BETA,         /* 58  */
-  MC_PROTOCOL_REG_OBS_CR_BEMF_ALPHA,     /* 59  */
-  MC_PROTOCOL_REG_OBS_CR_BEMF_BETA,      /* 60  */
+  MC_PROTOCOL_REG_OBS_CR_EL_ANGLE,       /* 55  */      /** not used **/
+  MC_PROTOCOL_REG_OBS_CR_ROT_SPEED,      /* 56  */      /** not used **/
+  MC_PROTOCOL_REG_OBS_CR_I_ALPHA,        /* 57  */      /** not used **/
+  MC_PROTOCOL_REG_OBS_CR_I_BETA,         /* 58  */      /** not used **/
+  MC_PROTOCOL_REG_OBS_CR_BEMF_ALPHA,     /* 59  */      /** not used **/
+  MC_PROTOCOL_REG_OBS_CR_BEMF_BETA,      /* 60  */      /** not used **/
   MC_PROTOCOL_REG_DAC_USER1,             /* 61  */
   MC_PROTOCOL_REG_DAC_USER2,             /* 62  */
   MC_PROTOCOL_REG_MAX_APP_SPEED,         /* 63  */
@@ -118,8 +116,8 @@ typedef enum
   MC_PROTOCOL_REG_IQ_SPEEDMODE,          /* 65  */
   MC_PROTOCOL_REG_EST_BEMF_LEVEL,        /* 66  */
   MC_PROTOCOL_REG_OBS_BEMF_LEVEL,        /* 67  */
-  MC_PROTOCOL_REG_EST_CR_BEMF_LEVEL,     /* 68  */
-  MC_PROTOCOL_REG_OBS_CR_BEMF_LEVEL,     /* 69  */
+  MC_PROTOCOL_REG_EST_CR_BEMF_LEVEL,     /* 68  */      /** not used **/
+  MC_PROTOCOL_REG_OBS_CR_BEMF_LEVEL,     /* 69  */      /** not used **/
   MC_PROTOCOL_REG_FF_1Q,                 /* 70  */
   MC_PROTOCOL_REG_FF_1D,                 /* 71  */
   MC_PROTOCOL_REG_FF_2,                  /* 72  */
@@ -143,54 +141,52 @@ typedef enum
   MC_PROTOCOL_REG_PFC_ENABLED,           /* 90  */
   MC_PROTOCOL_REG_RAMP_FINAL_SPEED,      /* 91  */
   MC_PROTOCOL_REG_RAMP_DURATION,         /* 92  */
-  MC_PROTOCOL_REG_HFI_EL_ANGLE,          /* 93  */
-  MC_PROTOCOL_REG_HFI_ROT_SPEED,         /* 94  */
-  MC_PROTOCOL_REG_HFI_CURRENT,           /* 95  */
-  MC_PROTOCOL_REG_HFI_INIT_ANG_PLL,      /* 96  */
-  MC_PROTOCOL_REG_HFI_INIT_ANG_SAT_DIFF, /* 97  */
-  MC_PROTOCOL_REG_HFI_PI_PLL_KP,         /* 98  */
-  MC_PROTOCOL_REG_HFI_PI_PLL_KI,         /* 99  */
-  MC_PROTOCOL_REG_HFI_PI_TRACK_KP,       /* 100 */
-  MC_PROTOCOL_REG_HFI_PI_TRACK_KI,       /* 101 */
-  MC_PROTOCOL_REG_SC_CHECK,              /* 102 */
-  MC_PROTOCOL_REG_SC_STATE,              /* 103 */
-  MC_PROTOCOL_REG_SC_RS,                 /* 104 */
-  MC_PROTOCOL_REG_SC_LS,                 /* 105 */
-  MC_PROTOCOL_REG_SC_KE,                 /* 106 */
-  MC_PROTOCOL_REG_SC_VBUS,               /* 107 */
-  MC_PROTOCOL_REG_SC_MEAS_NOMINALSPEED,  /* 108 */
-  MC_PROTOCOL_REG_SC_STEPS,              /* 109 */
-  MC_PROTOCOL_REG_SPEED_KP_DIV,          /* 110 */
-  MC_PROTOCOL_REG_SPEED_KI_DIV,          /* 111 */
-  MC_PROTOCOL_REG_UID,                   /* 112 */
-  MC_PROTOCOL_REG_HWTYPE,                /* 113 */
-  MC_PROTOCOL_REG_CTRBDID,               /* 114 */
-  MC_PROTOCOL_REG_PWBDID,                /* 115 */
-  MC_PROTOCOL_REG_SC_PP,                 /* 116 */
-  MC_PROTOCOL_REG_SC_CURRENT,            /* 117 */
-  MC_PROTOCOL_REG_SC_SPDBANDWIDTH,       /* 118 */
-  MC_PROTOCOL_REG_SC_LDLQRATIO,          /* 119 */
-  MC_PROTOCOL_REG_SC_NOMINAL_SPEED,      /* 120 */
-  MC_PROTOCOL_REG_SC_CURRBANDWIDTH,      /* 121 */
-  MC_PROTOCOL_REG_SC_J,                  /* 122 */
-  MC_PROTOCOL_REG_SC_F,                  /* 123 */
-  MC_PROTOCOL_REG_SC_MAX_CURRENT,        /* 124 */
-  MC_PROTOCOL_REG_SC_STARTUP_SPEED,      /* 125 */
-  MC_PROTOCOL_REG_SC_STARTUP_ACC,        /* 126 */
-  MC_PROTOCOL_REG_SC_PWM_FREQUENCY,      /* 127 */
-  MC_PROTOCOL_REG_SC_FOC_REP_RATE,       /* 128 */
-  MC_PROTOCOL_REG_PWBDID2,               /* 129 */
-  MC_PROTOCOL_REG_SC_COMPLETED,          /* 130 */
-  MC_PROTOCOL_REG_CURRENT_POSITION,      /* 131 */
-  MC_PROTOCOL_REG_TARGET_POSITION,       /* 132 */
-  MC_PROTOCOL_REG_MOVE_DURATION,         /* 133 */
-  MC_PROTOCOL_REG_POSITION_KP,           /* 134 */
-  MC_PROTOCOL_REG_POSITION_KI,           /* 135 */
-  MC_PROTOCOL_REG_POSITION_KD,           /* 136 */
+  MC_PROTOCOL_REG_HFI_EL_ANGLE,          /* 93  */      /** not used **/
+  MC_PROTOCOL_REG_HFI_ROT_SPEED,         /* 94  */      /** not used **/
+  MC_PROTOCOL_REG_HFI_CURRENT,           /* 95  */      /** not used **/
+  MC_PROTOCOL_REG_HFI_INIT_ANG_PLL,      /* 96  */      /** not used **/
+  MC_PROTOCOL_REG_HFI_INIT_ANG_SAT_DIFF, /* 97  */      /** not used **/
+  MC_PROTOCOL_REG_HFI_PI_PLL_KP,         /* 98  */      /** not used **/
+  MC_PROTOCOL_REG_HFI_PI_PLL_KI,         /* 99  */      /** not used **/
+  MC_PROTOCOL_REG_HFI_PI_TRACK_KP,       /* 100 */      /** not used **/
+  MC_PROTOCOL_REG_HFI_PI_TRACK_KI,       /* 101 */      /** not used **/
+  MC_PROTOCOL_REG_SC_CHECK,              /* 102 */      /** not used **/
+  MC_PROTOCOL_REG_SC_STATE,              /* 103 */      /** not used **/
+  MC_PROTOCOL_REG_SC_RS,                 /* 104 */      /** not used **/
+  MC_PROTOCOL_REG_SC_LS,                 /* 105 */      /** not used **/
+  MC_PROTOCOL_REG_SC_KE,                 /* 106 */      /** not used **/
+  MC_PROTOCOL_REG_SC_VBUS,               /* 107 */      /** not used **/
+  MC_PROTOCOL_REG_SC_MEAS_NOMINALSPEED,  /* 108 */      /** not used **/
+  MC_PROTOCOL_REG_SC_STEPS,              /* 109 */      /** not used **/
+  MC_PROTOCOL_REG_SPEED_KP_DIV,          /* 110 */      /** not used **/
+  MC_PROTOCOL_REG_SPEED_KI_DIV,          /* 111 */      /** not used **/
+  MC_PROTOCOL_REG_UID,                   /* 112 */      /** not used **/
+  MC_PROTOCOL_REG_HWTYPE,                /* 113 */      /** not used **/
+  MC_PROTOCOL_REG_CTRBDID,               /* 114 */      /** not used **/
+  MC_PROTOCOL_REG_PWBDID,                /* 115 */      /** not used **/
+  MC_PROTOCOL_REG_SC_PP,                 /* 116 */      /** not used **/
+  MC_PROTOCOL_REG_SC_CURRENT,            /* 117 */      /** not used **/
+  MC_PROTOCOL_REG_SC_SPDBANDWIDTH,       /* 118 */      /** not used **/
+  MC_PROTOCOL_REG_SC_LDLQRATIO,          /* 119 */      /** not used **/
+  MC_PROTOCOL_REG_SC_NOMINAL_SPEED,      /* 120 */      /** not used **/
+  MC_PROTOCOL_REG_SC_CURRBANDWIDTH,      /* 121 */      /** not used **/
+  MC_PROTOCOL_REG_SC_J,                  /* 122 */      /** not used **/
+  MC_PROTOCOL_REG_SC_F,                  /* 123 */      /** not used **/
+  MC_PROTOCOL_REG_SC_MAX_CURRENT,        /* 124 */      /** not used **/
+  MC_PROTOCOL_REG_SC_STARTUP_SPEED,      /* 125 */      /** not used **/
+  MC_PROTOCOL_REG_SC_STARTUP_ACC,        /* 126 */      /** not used **/
+  MC_PROTOCOL_REG_SC_PWM_FREQUENCY,      /* 127 */      /** not used **/
+  MC_PROTOCOL_REG_SC_FOC_REP_RATE,       /* 128 */      /** not used **/
+  MC_PROTOCOL_REG_PWBDID2,               /* 129 */      /** not used **/
+  MC_PROTOCOL_REG_SC_COMPLETED,          /* 130 */      /** not used **/
+  MC_PROTOCOL_REG_CURRENT_POSITION,      /* 131 */      /** not used **/
+  MC_PROTOCOL_REG_TARGET_POSITION,       /* 132 */      /** not used **/
+  MC_PROTOCOL_REG_MOVE_DURATION,         /* 133 */      /** not used **/
+  MC_PROTOCOL_REG_POSITION_KP,           /* 134 */      /** not used **/
+  MC_PROTOCOL_REG_POSITION_KI,           /* 135 */      /** not used **/
+  MC_PROTOCOL_REG_POSITION_KD,           /* 136 */      /** not used **/
   MC_PROTOCOL_REG_UNDEFINED
 } MC_Protocol_REG_t;
-
-#define MC_PROTOCOL_REGAL_UL_FAULT_FLAG_BASE 0x100 // !regal modification
 
 /** @brief DAC channels */
 typedef enum
@@ -259,7 +255,6 @@ typedef enum
 #define MC_PROTOCOL_CODE_GET_FW_VERSION   0x0C
 #define MC_PROTOCOL_CODE_SET_TORQUE_RAMP  0x0D
 #define MC_PROTOCOL_CODE_SET_POSITION_CMD 0x12
-#define MC_PROTOCOL_CODE_REGAL_FAULT_INJECTION  0x1F
 
 #define MC_PROTOCOL_CMD_START_MOTOR       0x01
 #define MC_PROTOCOL_CMD_STOP_MOTOR        0x02
@@ -277,7 +272,7 @@ typedef enum
 #define MC_PROTOCOL_CMD_SC_STOP           0x0E
 
 #define CTRBDID 1
-#define PWBDID 2
+#define PWBDID 0
 #define MC_UID 883328122
 
 /**

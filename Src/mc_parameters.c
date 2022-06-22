@@ -95,7 +95,7 @@ const R3_1_Params_t R3_1_ParamsM1 =
                 
 
 /* Emergency input (BKIN2) signal initialization -----------------------------*/
-  .BKIN2Mode     = NONE,                         
+  .BKIN2Mode     = EXT_MODE,                         
 
 /* Internal COMP settings ----------------------------------------------------*/
   .CompOCPASelection     = MC_NULL,

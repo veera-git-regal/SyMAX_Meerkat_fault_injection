@@ -23,7 +23,7 @@
 /* Includes --------------------------------------------------------------------------------------------------------------------*/
 #include "module_err_logHandle.h"
 
-//#include "driver_usart1.h"
+//#include "driver_usart2.h"
 
 /* Content ---------------------------------------------------------------------------------------------------------------------*/
 /* Auto acknowledgement handle declaration */
@@ -43,11 +43,13 @@ enum {
   KILL_MODULE = KILL_APP
 };
 
+uint8_t Err_logHandlingStructMem_u32_buf[sizeof(Err_logHandling_Control)];
 uint8_t module_err_log_u32(uint8_t drv_id_u8, uint8_t prev_state_u8, uint8_t next_state_u8, uint8_t irq_id_u8) {
   uint8_t return_state_u8 = INIT_MODULE;
   switch (next_state_u8) {
     case INIT_MODULE: {
       Err_logHandlingStructMem_u32 = StructMem_CreateInstance(MODULE_ERR_LOGHANDLE, sizeof(Err_logHandling_Control), ACCESS_MODE_WRITE_ONLY, NULL, EMPTY_LIST);//System call create a structured memory
+      Err_logHandlingStructMem_u32->p_ramBuf_u8 = Err_logHandlingStructMem_u32_buf;
       err_logHandling_Control = (Err_logHandling_Control*)(*Err_logHandlingStructMem_u32).p_ramBuf_u8;
 //      (*err_logHandling_Control)
       Err_log_WaitTime = getSysCount() + Err_logTimePeriod;                        //store time tick value  
@@ -69,7 +71,7 @@ uint8_t module_err_log_u32(uint8_t drv_id_u8, uint8_t prev_state_u8, uint8_t nex
         break;
     }
     case KILL_MODULE: {
-      // The USART1 driver module must only be executed once.
+      // The USART2 driver module must only be executed once.
       // Setting processStatus_u8 to PROCESS_STATUS_KILLED prevents the scheduler main loop from calling this module again.
       uint8_t table_index_u8 = getProcessInfoIndex(drv_id_u8);
       if (table_index_u8 != INDEX_NOT_FOUND) {

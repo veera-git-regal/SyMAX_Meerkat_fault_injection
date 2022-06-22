@@ -6,6 +6,7 @@
 * @date    15-Mar-2021
 * @brief   Main driver module for I2C Communication.
 * @details This module initializes the I2C port and attaches the pre-selected fixed memory allocation to the module.
+*          This module contains a lot of time delay process, which will be implemented as the stateMachine type functions
 ********************************************************************************************************************************
 */
 
@@ -13,8 +14,6 @@
 #include "module_i2c.h"
 #include "motorcontrol.h"
 #include "driver_i2c.h"
-#include "stm32f3xx_ll_i2c.h"
-
 
 /* Content ---------------------------------------------------------------------------------------------------------------------*/
 /* Uarts handle declaration */
@@ -23,14 +22,15 @@ extern ProcessInfo processInfoTable[];
 extern Ram_Buf *i2cStructMem_u32;
 extern MCT_Handle_t MCT[NBR_OF_MOTORS];
 
-uint8_t readBlockDatState = 0;         /**@Note //readBlockDat() state pointer variable, alway set to zero before calling readBlockDat()**/
-uint8_t I2C_write_2PageState = 0;      /**@Note //I2C_write_2Page() state pointer variable, alway set to zero before calling I2C_write_2Page()**/
-uint8_t I2C_WriteState = 0;            /**@Note //I2C_Write() state pointer variable, alway set to zero before calling I2C_Write()**/
-uint8_t writeBlockDatState = 0;        /**@Note //writeBlockDat() state pointer variable, alway set to zero before calling writeBlockDat()**/
-uint8_t writeDynFrameState = 0;        /**@Note //writeDynFrame() state pointer variable, alway set to zero before calling writeDynFrame()**/
-uint8_t readDynFrameState = 0;         /**@Note //readDynFrame() state pointer variable, alway set to zero before calling readDynFrame()**/
-uint8_t EEprom_EraseAllState = 0;
-uint8_t EEprom_RegisterUpdateState = 0;
+/** internal stateMachine stage-variable for each state-function **/
+uint8_t readBlockDatState = 0;          /**@Note //readBlockDat() state pointer variable, alway set to zero before calling readBlockDat()**/
+uint8_t I2C_write_2PageState = 0;       /**@Note //I2C_write_2Page() state pointer variable, alway set to zero before calling I2C_write_2Page()**/
+uint8_t I2C_WriteState = 0;             /**@Note //I2C_Write() state pointer variable, alway set to zero before calling I2C_Write()**/
+uint8_t writeBlockDatState = 0;         /**@Note //writeBlockDat() state pointer variable, alway set to zero before calling writeBlockDat()**/
+uint8_t writeDynFrameState = 0;         /**@Note //writeDynFrame() state pointer variable, alway set to zero before calling writeDynFrame()**/
+uint8_t readDynFrameState = 0;          /**@Note //readDynFrame() state pointer variable, alway set to zero before calling readDynFrame()**/
+uint8_t EEprom_EraseAllState = 0;       /**@Note //EEprom_EraseAll() state pointer variable, alway set to zero before calling EEprom_EraseAll()**/
+uint8_t EEprom_RegisterUpdateState = 0; /**@Note //EEprom_RegisterUpdate() state pointer variable, alway set to zero before calling EEprom_RegisterUpdate()**/
 
 #define EEpromRamBufSize 200
 unsigned char dataloggerRxBuf[EEpromRamBufSize] ;    //receive buffer for input ring buffer
@@ -42,8 +42,8 @@ uint64_t tt_I2cExeLimit = 0;            //variable for EEprom can stay execute f
 uint64_t tt_minDelay = 0;               //for minute counter delay
 #define minDelayValue 1;               //store data to eeprom every 1 minute
 uint8_t periodicUpdatDat[] = {Idfy_logDatAddr_powerOnTimeCount0, Idfy_logDatAddr_BusVoltageMax};
-int64_t powOnOffset = -2;   //Change from -1 to -2 for the prevent confuse by the blank EEprom of all data(0xff).
-
+int64_t powOnOffset = -1;
+uint8_t is_I2CModuleReady = FALSE;
 uint16_t curVBus = 0;
 uint64_t sumPowOn;
 uint16_t* tmpryVBusEE;
@@ -51,76 +51,15 @@ uint8_t* tmpryPowOn;
 uint8_t *tmpryVerifyDat;
 uint16_t tmpryRegisterNum;
 
+uint16_t RegisterNumTmpry;
+
 /** @Note "EEPROM_ACCESS_TIM_LIMIT" is the first time limit control for an stateMachine function **/
 #define EEPROM_ACCESS_TIM_LIMIT 3      //constant of the EEprom can stay execute for read/write
-
-/*
-uint8_t  i2cTxBuffer[]  = {0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,\
-                           0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,\
-                           0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f};
-
-uint8_t tmpryWrDat[] = {0x02, 0x18, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 
-                        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03};
-
-uint8_t tmpryWrDat1[] = {0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
-                        0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
-                        0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04};
-
-
-uint8_t tmpryWrDat2[] = { 0x02, 0x18, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x12, 0x34, 0x56, 0x78, 
-                          0x9A, 0xBC, 0xDE, 0xF0, 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0, 0x12, 0x34, 0x56, 0x78, 
-                          0x9A, 0xBC, 0xDE, 0xF0, 0x03};
-
-
-uint8_t tmpryWrDat3[] = { 0x02, 0x18, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x12, 0x34, 0x56, 0x78, 
-                          0x9A, 0xBC, 0xDE, 0xF0, 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0, 0x12, 0x34, 0x56, 0x78, 
-                          0x9A, 0xBC, 0xDE, 0xF0, 0x03};
-
-
-uint8_t tmpryWrDat4[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-*/
-
-uint8_t tmpryWrDat5[] = { 0x02, 0x03, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, Idfy_logDatAddr_ReverseSpinCount, 0x00, 0xAA, 0x03};
-
-
-//uint8_t tmpryWrDat6[] = { 0x02, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03};
-
-uint16_t lastFrameAddr = 0; //the last frame address read 
-
-uint8_t* readBlockBuf;
-
-uint8_t* readTestDat;
+//uint8_t tmpryWrDat5[] = { 0x02, 0x03, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, Idfy_logDatAddr_ReverseSpinCount, 0x00, 0xAA, 0x03};
 uint16_t FrameI2cCMD;
 uint8_t updateParamIndex = 0;
-
-
-
-
-
-
-//////debug only ///////   
-int16_t validFrameAddr;
 uint8_t *tmpryDebugDat;
 
-uint8_t tmpryIndexI2c = 0;
-int16_t finalAddr = 0;
-
-uint8_t testCount = 0;
-uint8_t debugBuf[180];
-
-//////End of debug only ///////   
 
 extern I2c_Control *i2cControl;
 
@@ -131,7 +70,6 @@ enum {
   DECODE_MODULE,
   LOGGER_CMD_MODULE,
   STORAGE_CMD_MODULE,
-  debug_module,
   CounterUpdate_MODULE,
   busUpdate_MODULE,
   busUpdate1_MODULE,
@@ -145,7 +83,6 @@ uint8_t i2cSeqMemRX_u32_buf[200];
 uint8_t i2cSeqMemTX_u32_buf[200];
 uint8_t i2cStructMem_u32_buf[sizeof(I2c_Control)];
 uint8_t I2CRecBufA[maxSizeEEpromFrame];
-
 void assign_I2C_ModuleMem(){  
   i2cSeqMemRX_u32 = SeqMem_CreateInstance(MODULE_I2C, 200, 
                               ACCESS_MODE_WRITE_ONLY, NULL, EMPTY_LIST);//System call create a buffer for final packet receiver buffer 
@@ -260,14 +197,10 @@ uint8_t moduleI2c_u32(uint8_t drv_id_u8, uint8_t prev_state_u8, uint8_t next_sta
       *          Idfy_logDatAddr_EEPromEraseAll_0 and Idfy_logDatAddr_EEPromEraseAll_1.
       *          The system will execute the ALL EEprom erase after reset                                        */     
 #ifdef eepromInstall 
-      
-     //  EEprom_EraseAll();
-      
       do
       {
         tmpryDebugDat = readBlockDat(( Idfy_logDatAddr_EEPromEraseAll_0 *2) + fixedAreaStartingAddr , 4);
       }while((readBlockDatState != 0xF1) && (readBlockDatState != 0xFE));
-      
       if(*((uint32_t*)tmpryDebugDat) == 0x73126351) //compare the magic number
       {
         EEprom_EraseAllState = 0;
@@ -284,6 +217,7 @@ uint8_t moduleI2c_u32(uint8_t drv_id_u8, uint8_t prev_state_u8, uint8_t next_sta
     }
     case RUN_MODULE: 
     {
+      is_I2CModuleReady = TRUE;
       return_state_u8 = RUN_MODULE;
 #ifdef eepromInstall 
       unsigned int DataLen = sizeof(dataloggerRxBuf);
@@ -291,8 +225,8 @@ uint8_t moduleI2c_u32(uint8_t drv_id_u8, uint8_t prev_state_u8, uint8_t next_sta
       if(RingBuf_GetUsedNumOfElements(i2cControl->SeqMemRX_u32) >= DATLOGGER_HEADER_SIZE )
       {
         RingBuf_Observe(i2cControl->SeqMemRX_u32 , dataloggerRxBuf, 0, &DataLen);                 //get data from input pipe
-
-        uint8_t protenETX;
+        uint8_t tmpryIndexI2c = 0;
+        uint8_t protenETX = 0;
         do                                                                                        //find and check a vaild frame
         {  
           while(dataloggerRxBuf[tmpryIndexI2c] != 0x02) tmpryIndexI2c++;                                //search for the STX 
@@ -309,7 +243,7 @@ uint8_t moduleI2c_u32(uint8_t drv_id_u8, uint8_t prev_state_u8, uint8_t next_sta
         RingBuf_ReadBlock(i2cControl->SeqMemRX_u32, dataloggerRxBuf, &DataLen);                   //extract the whole frame     
         return_state_u8 = DECODE_MODULE;
       }
-      else
+  /*    else
       {
         if(getMinCount() >= tt_minDelay)
         {
@@ -317,12 +251,13 @@ uint8_t moduleI2c_u32(uint8_t drv_id_u8, uint8_t prev_state_u8, uint8_t next_sta
           tt_I2cExeLimit = getSysCount() + EEPROM_ACCESS_TIM_LIMIT ; //set the eeprom exe time limit
           return_state_u8 = CounterUpdate_MODULE;
         }
-      }
+      }*/
 #endif
       break;
     }
     case DECODE_MODULE:
     {   //valid dataLogger frame store in "dataloggerRxBuf[]", length is in dataloggerRxBuf[1]
+        is_I2CModuleReady = FALSE;
         return_state_u8 = STORAGE_CMD_MODULE;
         FrameI2cCMD =  (((uint16_t)dataloggerRxBuf[3]) << 8)+ dataloggerRxBuf[2] ;
         if( FrameI2cCMD < 0x100) return_state_u8 = LOGGER_CMD_MODULE;
@@ -336,7 +271,6 @@ uint8_t moduleI2c_u32(uint8_t drv_id_u8, uint8_t prev_state_u8, uint8_t next_sta
       return_state_u8 = RUN_MODULE;
       switch(FrameI2cCMD)
       {
-        /******************************************************************************** EEprom Command 0x00 read register   **************************************************************************************************************************************/
         case 0x00:        //read register from EEprom and send result to SeqMemTX_u32
         {
           tmpryRegisterNum =  (((uint16_t)dataloggerRxBuf[13]) << 8)+ dataloggerRxBuf[12] ;
@@ -445,7 +379,7 @@ uint8_t moduleI2c_u32(uint8_t drv_id_u8, uint8_t prev_state_u8, uint8_t next_sta
         
         /******************************************************************************** EEprom Command 0xFF Rease all data in EEprom   ***************************************************************************************************************************/
         /** @pamNote Disable the above feature of 'All eeprom erase' for more secure method for erase*/
-        /*
+
         case 0xff:          //whole chip erase // { 0x02, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03};
         {
           EEprom_EraseAllState = 0;
@@ -454,7 +388,7 @@ uint8_t moduleI2c_u32(uint8_t drv_id_u8, uint8_t prev_state_u8, uint8_t next_sta
           }while ((EEprom_EraseAllState != 0xF1) && (EEprom_EraseAllState!= 0xFE));
           break;
         }
-        */
+
         default:
           break;
           //if no such cmd then back to idle
@@ -466,7 +400,6 @@ uint8_t moduleI2c_u32(uint8_t drv_id_u8, uint8_t prev_state_u8, uint8_t next_sta
       return_state_u8 = STORAGE_CMD_MODULE;
       do
       {
-        finalAddr = writeDynFrame(dataloggerRxBuf,dataloggerRxBuf[1] + DATLOGGER_HEADER_SIZE + 1);                         //write frame process need to run multiple time (as stateMachine) to complete the whole process
         if(getSysCount() >= tt_I2cExeLimit)
         { //write time limit reach.
           tt_I2cExeLimit = getSysCount() + EEPROM_ACCESS_TIM_LIMIT ; //set the eeprom 
@@ -477,19 +410,11 @@ uint8_t moduleI2c_u32(uint8_t drv_id_u8, uint8_t prev_state_u8, uint8_t next_sta
       if((writeDynFrameState == 0xF1) || (writeDynFrameState == 0xFE)) return_state_u8 = RUN_MODULE; //debug_module;     //check whole frame has been written if((writeDynFrameState == 0xF1) || (writeDynFrameState == 0xFE)) return_state_u8 = RUN_MODULE;     //check whole frame has been written 
       break;
     }
-   
-    case debug_module:
-    {
-      readBlockDatState = 0;
-      do{
-        tmpryDebugDat = readBlockDat(fixedAreaStartingAddr , 180);
-      }while((readBlockDatState != 0xF1) && (readBlockDatState != 0xFE));
-      return_state_u8 = RUN_MODULE;
-      break;
-    }
+  
     /*********************************************************************** periodic update parameters area ********************************************************************/
     case CounterUpdate_MODULE:
     {
+      is_I2CModuleReady = FALSE;
       if(updateParamIndex & 0x01)
       {
         return_state_u8 = busUpdate_MODULE;
@@ -546,7 +471,7 @@ uint8_t moduleI2c_u32(uint8_t drv_id_u8, uint8_t prev_state_u8, uint8_t next_sta
     case pwOnTimUpdate_Module:
       { //update motor power-on counter
         return_state_u8 = pwOnTimUpdate_Module;
-        if(powOnOffset == -2) //will only appear at power up is -2
+        if(powOnOffset == -1) //will only appear at power up is -1
         { //just power up and check this motor have turn on before 
           
           tt_I2cExeLimit = getSysCount() + EEPROM_ACCESS_TIM_LIMIT ; //set the eeprom 
@@ -564,6 +489,7 @@ uint8_t moduleI2c_u32(uint8_t drv_id_u8, uint8_t prev_state_u8, uint8_t next_sta
                 powOnOffset += ((uint64_t)tmpryPowOn[tmpryIndx]) << (8*tmpryIndx);
               }          
             }       
+            powOnOffset &= 0x7FFFFFFFFFFFFFFF;
             if(powOnOffset > 0x1397F2080) powOnOffset = 0x1397F2080;  //10000years or 5,259,600,000Minute      
           }
         }
@@ -1310,7 +1236,6 @@ void EEprom_EraseAll(void)
       }
       break;
     }
-
     case ERROR_EEprom_EraseAll:
     {
       break;
@@ -1328,8 +1253,6 @@ void EEprom_EraseAll(void)
 }
 
 
-
-
 enum {
   START_EEprom_RegisterUpdate = 0,               //general start state for stateMachine function as 0x00
   RdReg_EEprom_RegisterUpdate,
@@ -1341,6 +1264,7 @@ enum {
 void EEprom_RegisterUpdate(uint16_t RegisterNum)
 {
   static uint16_t newValue;
+  RegisterNumTmpry = RegisterNum;
   switch(EEprom_RegisterUpdateState)
   {
     case START_EEprom_RegisterUpdate:
@@ -1396,4 +1320,8 @@ void EEprom_RegisterUpdate(uint16_t RegisterNum)
         EEprom_RegisterUpdateState = ERROR_EEprom_RegisterUpdate;
       }
   } 
+}
+
+uint8_t I2CIsReady( void ){
+ return is_I2CModuleReady;
 }

@@ -1,0 +1,34 @@
+******************************* CAUTION ******************************************
+
+For every motor+board variant, 5 include files need to be updated
+
+1. \FlexMouse\Drivers\hardware_config.h
+2. \FlexMouse\Motor\regal_mc_lib.h
+3. \Inc\drive_parameters.h
+4. \Inc\pmsm_motor_parameters.h
+5. \Inc\power_stage_parameters.h
+
+In the future, these can be taken care of during flash settings update. But for 
+development, would be wise and easier just to update the correct files, and program
+through bootloader.
+
+******************************* Other INSTRUCTIONS ********************************************
+- When OTF is enabled, these drive_parameters should be set correctly:
+
+/* Phase 1 */
+#define PHASE1_DURATION                XXXX /*set the detection time in milliseconds */
+#define PHASE1_FINAL_SPEED_UNIT         (0*SPEED_UNIT/_RPM)
+#define PHASE1_FINAL_CURRENT           0
+/* Phase 2 */
+#define PHASE2_DURATION                XXXX /*set the synchronization time in milliseconds */
+#define PHASE2_FINAL_SPEED_UNIT         (0*SPEED_UNIT/_RPM)
+#define PHASE2_FINAL_CURRENT           0
+
+
+#define ENABLE_SL_ALGO_FROM_PHASE      1
+
+#define TRANSITION_DURATION            0  /* Switch over duration, ms, RPa: important to be set to zero for the OTF to work properly */
+
+- Phase 3 and Phase 4 are normal startup routines.
+
+****************************************************************************************************

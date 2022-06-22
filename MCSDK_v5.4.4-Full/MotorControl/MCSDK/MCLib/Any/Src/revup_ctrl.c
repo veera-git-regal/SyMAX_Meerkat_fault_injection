@@ -50,6 +50,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "revup_ctrl.h"
+#include "regal_mc_lib.h"
 
 /** @addtogroup MCSDK
   * @{
@@ -411,6 +412,10 @@ __weak bool RUC_Exec( RevUpCtrl_Handle_t * pHandle )
   {
     /* Decrease the hPhaseRemainingTicks.*/
     pHandle->hPhaseRemainingTicks--;
+    if ((pHandle->bStageCnt == 1u)&&(Burnin_M1.en_ctrl == ENABLE))
+    {
+      pHandle->hPhaseRemainingTicks++;
+    }
 
   } /* hPhaseRemainingTicks > 0 */
 

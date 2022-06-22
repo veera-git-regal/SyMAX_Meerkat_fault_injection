@@ -38,13 +38,15 @@
    Transformation of real currents (A) into int16_t format must be done accordingly with
    formula:
    Phase current (int16_t 0-to-peak) = (Phase current (A 0-to-peak)* 32767 * Rshunt *
-                                   *Amplifying network gain)/(MCU supply voltage/2)
+                                  #define NOMINAL_CURRENT         21447 *Amplifying network gain)/(MCU supply voltage/2)
 */
 
 #define NOMINAL_CURRENT         21447
+//#define NOMINAL_CURRENT         25736
 #define MOTOR_MAX_SPEED_RPM     2250 /*!< Maximum rated speed  */
 #define MOTOR_VOLTAGE_CONSTANT  72.0 /*!< Volts RMS ph-ph /kRPM */
 #define ID_DEMAG                -21447 /*!< Demagnetization current */
+//#define ID_DEMAG                -25736 /*!< Demagnetization current */
 
 /***************** MOTOR SENSORS PARAMETERS  ******************************/
 /* Motor sensors parameters are always generated but really meaningful only

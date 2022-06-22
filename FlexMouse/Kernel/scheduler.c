@@ -11,13 +11,13 @@
 
 /* Includes --------------------------------------------------------------------------------------------------------------------*/
 #include "scheduler.h"
-
-#include "main.h"
-#include "mc_api.h"
 #include "module_meerkat_interface_config.h"
-//#define stackTest
+#include "module_meerkat_interface.h"
 #include "stm32f3xx_ll_iwdg.h"
-//volatile uint64_t tickCounter = 0;
+#include "main.h"
+#define stackTest
+
+//#include "stm32f3xx_ll_iwdg.h"
 __root const uint32_t App_CRC @ "app_crc32_rom" = 0x00000000; // This is a placeholder for App Firmware Checksum (CRC32)
 
 /*Software interrupt variable in bit oriented
@@ -30,6 +30,7 @@ uint64_t SoftwareIrqBitPt[] = { 0,0,0,0 };
 uint8_t  IrqTrigProcessID = 255;        //current module/process (ID) trigged IRQ 
 
 uint64_t tickCounter; 
+uint64_t minCounter = 0;                //can store 584,542,046years in 64bit 
 
 /* house keeping variable ------------------------------------------------------------------------------------------------------*/
 uint64_t moduleStartTime;       //keep the the start time of systick for measure the run period of this module
@@ -38,13 +39,16 @@ uint64_t moduleRunTime;
 uint64_t IrqModuleStartTime;    //keep the the start time of systick for measure the run period of the IRQ response module
 uint64_t IrqModuleRunTime;
 
-uint64_t minCounter = 0;                //can store 584,542,046years in 64bit 
-
 uint8_t  maxTimeModuleId = 255;
 uint64_t maxModuleTimeUsage = 0;
 uint8_t  maxTimeIRQ_ModuleId = 255;
 uint64_t maxIRQTimeUsage = 0;
-void Watchdog_Initialize(uint8_t timeout_u8) ;
+
+static uint8_t reallocError = 0; 
+//pam for debug only variable
+uint64_t currentMaxRunTime = 0;
+uint64_t currentMaxTimedID = 0;
+
 
 // REVIEW: Placement
 
@@ -53,14 +57,14 @@ void Watchdog_Initialize(uint8_t timeout_u8) ;
     /** @caution: please put the modules-parameters in the same sequence as the enum defined in the header file for consistance ID number reflect in processInfoTable[MODULE_ID] below**/
 ProcessInfo processInfoTable[TOTAL_NUM_OF_PROCESSES] = {
     // Driver Modules
-    {MODULE_USART1_ID, MODULE_USART1_FUNCTION_POINTER, MODULE_USART1_TOTAL_SEQ, MODULE_USART1_TOTAL_STRUCT, MODULE_USART1_PREV_STATE,
-     MODULE_USART1_NEXT_STATE, MODULE_USART1_IRQ_STATUS, MODULE_USART1_PROCESS_STATUS, MODULE_USART1_MASTER_SHARED_MEM},
-	    
-     {MODULE_FLASH_ID, MODULE_FLASH_FUNCTION_POINTER, MODULE_FLASH_TOTAL_SEQ, MODULE_FLASH_TOTAL_STRUCT, MODULE_FLASH_PREV_STATE,
+    {MODULE_FLASH_ID, MODULE_FLASH_FUNCTION_POINTER, MODULE_FLASH_TOTAL_SEQ, MODULE_FLASH_TOTAL_STRUCT, MODULE_FLASH_PREV_STATE,
      MODULE_FLASH_NEXT_STATE, MODULE_FLASH_IRQ_STATUS, MODULE_FLASH_PROCESS_STATUS, MODULE_FLASH_MASTER_SHARED_MEM},
- 
+     
+    {MODULE_USART2_ID, MODULE_USART2_FUNCTION_POINTER, MODULE_USART2_TOTAL_SEQ, MODULE_USART2_TOTAL_STRUCT, MODULE_USART2_PREV_STATE,
+     MODULE_USART2_NEXT_STATE, MODULE_USART2_IRQ_STATUS, MODULE_USART2_PROCESS_STATUS, MODULE_USART2_MASTER_SHARED_MEM},
+     
      {MODULE_I2C_ID, MODULE_I2C_FUNCTION_POINTER, MODULE_I2C_TOTAL_SEQ, MODULE_I2C_TOTAL_STRUCT, MODULE_I2C_PREV_STATE,
-    MODULE_I2C_NEXT_STATE, MODULE_I2C_IRQ_STATUS, MODULE_I2C_PROCESS_STATUS, MODULE_I2C_MASTER_SHARED_MEM},
+     MODULE_I2C_NEXT_STATE, MODULE_I2C_IRQ_STATUS, MODULE_I2C_PROCESS_STATUS, MODULE_I2C_MASTER_SHARED_MEM},
      
      // Application Modules
     {MODULE_MC_STATEMACHINE_ID , MODULE_MC_STATEMACHINE_FUNCTION_POINTER, MODULE_MC_STATEMACHINE_TOTAL_SEQ, MODULE_MC_STATEMACHINE_TOTAL_STRUCT, MODULE_MC_STATEMACHINE_PREV_STATE,
@@ -68,60 +72,46 @@ ProcessInfo processInfoTable[TOTAL_NUM_OF_PROCESSES] = {
      
     {MODULE_APP_ID, MODULE_APP_FUNCTION_POINTER, MODULE_APP_TOTAL_SEQ, MODULE_APP_TOTAL_STRUCT, MODULE_APP_PREV_STATE,
      MODULE_APP_NEXT_STATE, MODULE_APP_IRQ_STATUS, MODULE_APP_PROCESS_STATUS, MODULE_APP_MASTER_SHARED_MEM},
+
+     {MODULE_EEP_CMD_ID, MODULE_EEP_CMD_FUNCTION_POINTER, MODULE_EEP_CMD_TOTAL_SEQ, MODULE_EEP_CMD_TOTAL_STRUCT, MODULE_EEP_CMD_PREV_STATE,
+     MODULE_EEP_CMD_NEXT_STATE, MODULE_EEP_CMD_IRQ_STATUS, MODULE_EEP_CMD_PROCESS_STATUS, MODULE_EEP_CMD_MASTER_SHARED_MEM},
      
-    {MODULE_SHORT_CMD_ID, MODULE_SHORT_CMD_FUNCTION_POINTER, MODULE_SHORT_CMD_TOTAL_SEQ, MODULE_SHORT_CMD_TOTAL_STRUCT, MODULE_SHORT_CMD_PREV_STATE,
-     MODULE_SHORT_CMD_NEXT_STATE, MODULE_SHORT_CMD_IRQ_STATUS, MODULE_SHORT_CMD_PROCESS_STATUS, MODULE_SHORT_CMD_MASTER_SHARED_MEM},
-     
-    {MODULE_EEP_CMD_ID, MODULE_EEP_CMD_FUNCTION_POINTER, MODULE_EEP_CMD_TOTAL_SEQ, MODULE_EEP_CMD_TOTAL_STRUCT, MODULE_EEP_CMD_PREV_STATE,
-    MODULE_EEP_CMD_NEXT_STATE, MODULE_EEP_CMD_IRQ_STATUS, MODULE_EEP_CMD_PROCESS_STATUS, MODULE_EEP_CMD_MASTER_SHARED_MEM}, 
-   
-     {MODULE_REPLY_CMD_ID, MODULE_REPLY_CMD_FUNCTION_POINTER, MODULE_REPLY_CMD_TOTAL_SEQ, MODULE_REPLY_CMD_TOTAL_STRUCT, MODULE_REPLY_CMD_PREV_STATE,
-     MODULE_REPLY_CMD_NEXT_STATE, MODULE_REPLY_CMD_IRQ_STATUS, MODULE_REPLY_CMD_PROCESS_STATUS, MODULE_REPLY_CMD_MASTER_SHARED_MEM},
-     
-    {MODULE_FLASH_UPDATE_CMD_ID, MODULE_FLASH_UPDATE_CMD_FUNCTION_POINTER, MODULE_FLASH_UPDATE_CMD_TOTAL_SEQ, MODULE_FLASH_UPDATE_CMD_TOTAL_STRUCT, MODULE_FLASH_UPDATE_CMD_PREV_STATE,
-     MODULE_FLASH_UPDATE_CMD_NEXT_STATE, MODULE_FLASH_UPDATE_CMD_IRQ_STATUS, MODULE_FLASH_UPDATE_CMD_PROCESS_STATUS, MODULE_FLASH_UPDATE_CMD_MASTER_SHARED_MEM},
-     
-    {MODULE_FLASH_REGISTER_CMD_ID, MODULE_FLASH_REGISTER_CMD_FUNCTION_POINTER, MODULE_FLASH_REGISTER_CMD_TOTAL_SEQ, MODULE_FLASH_REGISTER_CMD_TOTAL_STRUCT, MODULE_FLASH_REGISTER_CMD_PREV_STATE,
-     MODULE_FLASH_REGISTER_CMD_NEXT_STATE, MODULE_FLASH_REGISTER_CMD_IRQ_STATUS, MODULE_FLASH_REGISTER_CMD_PROCESS_STATUS, MODULE_FLASH_REGISTER_CMD_MASTER_SHARED_MEM},
-     
-     {MODULE_DEBUG_MODE_CMD_ID, MODULE_DEBUG_MODE_CMD_FUNCTION_POINTER, MODULE_DEBUG_MODE_CMD_TOTAL_SEQ, MODULE_DEBUG_MODE_CMD_TOTAL_STRUCT, MODULE_DEBUG_MODE_CMD_PREV_STATE,
-     MODULE_DEBUG_MODE_CMD_NEXT_STATE, MODULE_DEBUG_MODE_CMD_IRQ_STATUS, MODULE_DEBUG_MODE_CMD_PROCESS_STATUS, MODULE_DEBUG_MODE_CMD_MASTER_SHARED_MEM},
-     
-    {MODULE_AUTOACK_ID, MODULE_AUTOACK_FUNCTION_POINTER, MODULE_AUTOACK_TOTAL_SEQ, MODULE_AUTOACK_TOTAL_STRUCT, MODULE_AUTOACK_PREV_STATE,
-     MODULE_AUTOACK_NEXT_STATE, MODULE_AUTOACK_IRQ_STATUS, MODULE_AUTOACK_PROCESS_STATUS, MODULE_AUTOACK_MASTER_SHARED_MEM},
+    {MODULE_DYNAMIC_ID, MODULE_DYNAMIC_FUNCTION_POINTER, MODULE_DYNAMIC_TOTAL_SEQ, MODULE_DYNAMIC_TOTAL_STRUCT, MODULE_DYNAMIC_PREV_STATE,
+     MODULE_DYNAMIC_NEXT_STATE, MODULE_DYNAMIC_IRQ_STATUS, MODULE_DYNAMIC_PROCESS_STATUS, MODULE_DYNAMIC_MASTER_SHARED_MEM},
 
     {MODULE_ERR_LOGHANDLE_ID, MODULE_ERR_LOGHANDLE_FUNCTION_POINTER, MODULE_ERR_LOGHANDLE_TOTAL_SEQ, MODULE_ERR_LOGHANDLE_TOTAL_STRUCT, MODULE_ERR_LOGHANDLE_PREV_STATE,
      MODULE_ERR_LOGHANDLE_NEXT_STATE, MODULE_ERR_LOGHANDLE_IRQ_STATUS, MODULE_ERR_LOGHANDLE_PROCESS_STATUS, MODULE_ERR_LOGHANDLE_MASTER_SHARED_MEM},     
 
-    {MODULE_ECM_ICL_ID, MODULE_ECM_ICL_FUNCTION_POINTER, MODULE_ECM_ICL_TOTAL_SEQ, MODULE_ECM_ICL_TOTAL_STRUCT, MODULE_ECM_ICL_PREV_STATE,
+    {MODULE_MODBUS_ID, MODULE_MODBUS_FUNCTION_POINTER, MODULE_MODBUS_TOTAL_SEQ, MODULE_MODBUS_TOTAL_STRUCT, MODULE_MODBUS_PREV_STATE,
+     MODULE_MODBUS_NEXT_STATE, MODULE_MODBUS_IRQ_STATUS, MODULE_MODBUS_PROCESS_STATUS, MODULE_MODBUS_MASTER_SHARED_MEM},
+     
+     {MODULE_ECM_ICL_ID, MODULE_ECM_ICL_FUNCTION_POINTER, MODULE_ECM_ICL_TOTAL_SEQ, MODULE_ECM_ICL_TOTAL_STRUCT, MODULE_ECM_ICL_PREV_STATE,
      MODULE_ECM_ICL_NEXT_STATE, MODULE_ECM_ICL_IRQ_STATUS, MODULE_ECM_ICL_PROCESS_STATUS, MODULE_ECM_ICL_MASTER_SHARED_MEM},
-
-    {MODULE_VOLTAGE_DOUBLER_ID, MODULE_VOLTAGE_DOUBLER_FUNCTION_POINTER, MODULE_VOLTAGE_DOUBLER_TOTAL_SEQ, MODULE_VOLTAGE_DOUBLER_TOTAL_STRUCT, MODULE_VOLTAGE_DOUBLER_PREV_STATE,
+     
+     {MODULE_VOLTAGE_DOUBLER_ID, MODULE_VOLTAGE_DOUBLER_FUNCTION_POINTER, MODULE_VOLTAGE_DOUBLER_TOTAL_SEQ, MODULE_VOLTAGE_DOUBLER_TOTAL_STRUCT, MODULE_VOLTAGE_DOUBLER_PREV_STATE,
      MODULE_VOLTAGE_DOUBLER_NEXT_STATE, MODULE_VOLTAGE_DOUBLER_IRQ_STATUS, MODULE_VOLTAGE_DOUBLER_PROCESS_STATUS, MODULE_VOLTAGE_DOUBLER_MASTER_SHARED_MEM},	 
-         
-        
+     
+    // Test Module
+    {MODULE_TEST_ID, MODULE_TEST_FUNCTION_POINTER, MODULE_TEST_TOTAL_SEQ, MODULE_TEST_TOTAL_STRUCT, MODULE_TEST_PREV_STATE,
+     MODULE_TEST_NEXT_STATE, MODULE_TEST_IRQ_STATUS, MODULE_TEST_PROCESS_STATUS, MODULE_TEST_MASTER_SHARED_MEM},
+     
      {MODULE_MEERKAT_ID, MODULE_MEERKAT_FUNCTION_POINTER, MODULE_MEERKAT_TOTAL_SEQ, MODULE_MEERKAT_TOTAL_STRUCT, MODULE_MEERKAT_PREV_STATE,
      MODULE_MEERKAT_NEXT_STATE, MODULE_MEERKAT_IRQ_STATUS, MODULE_MEERKAT_PROCESS_STATUS, MODULE_MEERKAT_MASTER_SHARED_MEM},     
 
     {MODULE_RTC_ID, MODULE_RTC_FUNCTION_POINTER, MODULE_RTC_TOTAL_SEQ, MODULE_RTC_TOTAL_STRUCT, MODULE_RTC_PREV_STATE,
      MODULE_RTC_NEXT_STATE, MODULE_RTC_IRQ_STATUS, MODULE_RTC_PROCESS_STATUS, MODULE_RTC_MASTER_SHARED_MEM},   
-     
-   };
+
+};
 /** pam procedure #9 of Module insertion  :  add the module/s into the kernal list end **/
-
-uint64_t interruptRequestRegister_u64; // 64-Bit data structure for for storing big-wise driver interrupt requests flags.
-
 uint8_t Sched_Initialize()  {
     StructMem_InitBufs();
     SeqMem_InitBufs();
-   
-    interruptRequestRegister_u64 = 0;
 
-  Watchdog_Initialize(NUM_OF_625_MS_INCREMENTS);
+
+     Watchdog_Initialize(NUM_OF_625_MS_INC);
 
     return TRUE;
 }
-
 uint64_t shifter_u8;
 uint8_t IRQgroupItem;
 uint8_t IrqGroupIndx_u8;
@@ -145,9 +135,15 @@ void Sched_Run()  {
                if( moduleRunTime > maxModuleTimeUsage) {                                                    //store the max run time module ID  //house keeping code  
                   maxModuleTimeUsage = moduleRunTime;                                                                                           //house keeping code  
                   maxTimeModuleId = table_index_u8;                                                                                             //house keeping code  
+                 if(currentMaxRunTime < moduleRunTime) 
+                 {
+                   currentMaxRunTime = moduleRunTime;
+                   currentMaxTimedID = table_index_u8;
+                   
+                 }
                }
             }
-         //   ITM_EVENT8_WITH_PC(1,processInfoTable[table_index_u8].Sched_ModuleData.moduleId_u8);
+            ITM_EVENT8_WITH_PC(1,processInfoTable[table_index_u8].Sched_ModuleData.moduleId_u8);
             // Iterate through the interrupt register when an interrupt is present.
             // Handle each event sequentially by calling the interrupt handler of the driver's respective associated module.
             // Clear each event from the register after being handled.
@@ -183,11 +179,18 @@ void Sched_Run()  {
               }              
             }         
         }
-        if(!meerkat_fault_occured)
-        {         
-         Watchdog_Reload(); // Reload IWDG counter.
-         HAL_Delay(10);
+        if(((!Ram_mallocError) || (!Ring_mallocError)) || (!reallocError))                      //check any Heap memory alocation error                 //house keeping code 
+        { //report to system error or the Error/Log handling module      
+     //     setupSoftwareIRQ(255, MODULE_ERR_LOGHANDLE, 0xE1, 0x01, 0x00, NULL);  
+        } 
+        if( maxModuleTimeUsage > maxModuleRunTimeLimit)                                         //module exceed time limit error  check                 //house keeping code 
+        { //report to system error or the Error/Log handling module      
+     //     setupSoftwareIRQ(255, MODULE_ERR_LOGHANDLE, 0xE2, 0x01, 0x00, NULL);   
         }
+        else if( maxIRQTimeUsage > maxModuleRunTimeLimit)                                       //IRQ response module  exceed time limit error check    //house keeping code 
+        { //report to system error or the Error/Log handling module      
+     //     setupSoftwareIRQ(255, MODULE_ERR_LOGHANDLE, 0xE3, 0x01, 0x00, NULL);  
+        }      
     }
 }
 
@@ -223,6 +226,24 @@ uint16_t Calculate_CRC(uint16_t BufSize, unsigned char* aDataBuf)              /
 }
 
 /**
+  * @brief  This function performs CRC calculation on BufSize bytes from input data buffer aDataBuf.
+  * @param  BufSize Nb of bytes to be processed for CRC calculation
+  * @retval 16-bit CRC value computed on input data buffer
+  */
+uint32_t Calculate_CRC32(uint16_t BufSize, unsigned char* aDataBuf)
+{
+  register uint16_t index = 0;
+  LL_CRC_ResetCRCCalculationUnit(CRC);
+  /* Compute the CRC of Data Buffer array*/
+  for (index = 0; index < BufSize ; index++)
+  {
+    LL_CRC_FeedData8(CRC,aDataBuf[index] );
+  }
+  /* Return computed CRC value */
+  return (LL_CRC_ReadData32(CRC));
+}
+
+/**
   *************************************************************************************************************************************************************
   * @brief   Setup a software interrupt 
   * @details find out and set the correct bit in the software interrupt bit table SoftwareIrqBitPt[IrqGroupIndx_u8] 
@@ -250,7 +271,6 @@ void setupSoftwareIRQ(uint8_t SENDER_MODULE_ID, uint8_t RECIVER_MODULE_ID, uint8
     processInfoTable[table_index_u8].Sched_DrvData.irqDatPt_u8 = _irqDatPt_u8;                          //if no extend data so point to NULL                  
   }
 }
-
 
 #ifdef stackTest
 /** @Note this routine is only for testing stack pointer for the max value **/
@@ -284,28 +304,20 @@ void HAL_SYSTICK_Callback(void) { //Using SysTick_Handler() instead //SPA
     #if DISABLE_MEERKAT_SAFETY_MODULE <= 0
     MeerkatInterface_SysTickCallback();
     #endif // DISABLE_MEERKAT_SAFETY_MODULE <= 0
+
 }
 #else
 void HAL_SYSTICK_Callback(void) { //Using SysTick_Handler() instead //SPA
 //    tickCounter++; //SPA
     if(!(tickCounter++ % 60000)) 
       minCounter++;
-     #if DISABLE_MEERKAT_SAFETY_MODULE <= 0
-   // MeerkatInterface_SysTickCallback();
-    #endif // DISABLE_MEERKAT_SAFETY_MODULE <= 0
-
 }
 #endif
+ 
 
-#if 0
-void HAL_SYSTICK_Callback(void) {
-    //tickCounter++;
-#if DISABLE_MEERKAT_SAFETY_MODULE <= 0
-    MeerkatInterface_SysTickCallback();
-#endif // DISABLE_MEERKAT_SAFETY_MODULE <= 0
 
-}
-#endif
+         
+
 uint64_t getSysCount(void) 
 {
   return tickCounter; 
@@ -315,20 +327,25 @@ uint64_t getMinCount(void) //minute counter start counting from power up
 {
   return minCounter;
 }
-  
+
+uint8_t reallocErrorINC(uint8_t addCount)
+{
+  reallocError += addCount;
+  return(reallocError);  
+}
 
 void Watchdog_Initialize(uint8_t timeout_u8) {
-    LL_IWDG_Enable(IWDG);                             // Start the Independent Watchdog.
-    LL_IWDG_EnableWriteAccess(IWDG);                  // Enable write access to IWDG registers.
-    LL_IWDG_SetPrescaler(IWDG, LL_IWDG_PRESCALER_4);  // IWDG timer clock will be (LSI / 32).
-    LL_IWDG_SetReloadCounter(IWDG, timeout_u8 * 625); // (timeout_s * 625) must be between Min_Data=0 and Max_Data=0x0FFF
-    while (LL_IWDG_IsReady(IWDG) != TRUE)             // Wait for the registers to be updated
-    {
-    }
-    LL_IWDG_ReloadCounter(IWDG); // Reload the IWDG counter (kick the dog for once!).
-}
+     LL_IWDG_Enable(IWDG);                             // Start the Independent Watchdog.
+     LL_IWDG_EnableWriteAccess(IWDG);                  // Enable write access to IWDG registers.
+     LL_IWDG_SetPrescaler(IWDG, LL_IWDG_PRESCALER_4);  // IWDG timer clock will be (LSI / 32).
+     LL_IWDG_SetReloadCounter(IWDG, timeout_u8 * 625); // (timeout_s * 625) must be between Min_Data=0 and Max_Data=0x0FFF
+     while (LL_IWDG_IsReady(IWDG) != TRUE)             // Wait for the registers to be updated
+     {
+     }
+     LL_IWDG_ReloadCounter(IWDG); // Reload the IWDG counter (kick the dog for once!).
+ }
 
-void Watchdog_Reload(void) {
-    LL_IWDG_ReloadCounter(IWDG);
-}
+// void Watchdog_Reload(void) {
+//     LL_IWDG_ReloadCounter(IWDG);
+// }
 

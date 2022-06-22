@@ -66,10 +66,9 @@ __weak uint16_t NTC_SetFaultState( NTC_Handle_t * pHandle )
 {
   uint16_t hFault;
 
-  if ( pHandle->hAvTemp_d < pHandle->hOverTempThreshold )
+  if ( pHandle->hAvTemp_d > pHandle->hOverTempThreshold )
   {
-    //hFault = MC_OVER_TEMP;
-    hFault = MC_NO_ERROR;	
+    hFault = MC_OVER_TEMP;
   }
   else if ( pHandle->hAvTemp_d < pHandle->hOverTempDeactThreshold )
   {
@@ -115,7 +114,7 @@ __weak void NTC_Init( NTC_Handle_t * pHandle )
  */
 __weak void NTC_Clear( NTC_Handle_t * pHandle )
 {
-  pHandle->hAvTemp_d = 65535u;
+  pHandle->hAvTemp_d = 0u;
 }
 
 /**
@@ -127,14 +126,13 @@ __weak void NTC_Clear( NTC_Handle_t * pHandle )
   */
 __weak uint16_t NTC_CalcAvTemp( NTC_Handle_t * pHandle )
 {
-  uint32_t wtemp = 65536;
+  uint32_t wtemp;
   uint16_t hAux;
 
   if ( pHandle->bSensorType == REAL_SENSOR )
   {
     hAux = RCM_ExecRegularConv(pHandle->convHandle);
-    MeerkatInterface_AddTemperature1Sample(hAux);
-    
+
     if ( hAux != 0xFFFFu )
     {
       wtemp =  ( uint32_t )( pHandle->hLowPassFilterBW ) - 1u;
@@ -176,13 +174,13 @@ __weak uint16_t NTC_GetAvTemp_d( NTC_Handle_t * pHandle )
   */
 __weak int16_t NTC_GetAvTemp_C( NTC_Handle_t * pHandle )
 {
-  int32_t wTemp;
+   int32_t wTemp;
 
   if ( pHandle->bSensorType == REAL_SENSOR )
   {
     wTemp = ( int32_t )( pHandle->hAvTemp_d );
     wTemp -= ( int32_t )( pHandle->wV0 );
-    wTemp *= -(pHandle->hSensitivity);
+    wTemp *= pHandle->hSensitivity;
     wTemp = wTemp / 65536 + ( int32_t )( pHandle->hT0 );
   }
   else
